@@ -1,0 +1,38 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+umask "${UMASK}"
+
+figlet "${APP}"
+
+echo "
+----------------------------------------------------------------------
+DONATIONS
+----------------------------------------------------------------------
+NANO: xrb_1bxqm6nsm55s64rgf8f5k9m795hda535to6y15ik496goatakpupjfqzokfc
+BTC: 39W6dcaG3uuF5mZTRL4h6Ghem74kUBHrmz
+LTC: MMUFcGLiK6DnnHGFnN2MJLyTfANXw57bDY
+----------------------------------------------------------------------
+ENVIRONMENT
+----------------------------------------------------------------------
+PUID            | ${PUID}
+PGID            | ${PGID}
+UMASK           | ${UMASK}
+TZ              | ${TZ}
+CRON_TIME       | ${CRON_TIME}
+CF_USER         | ${CF_USER}
+CF_APIKEY       | ${CF_APIKEY}
+CF_ZONES        | ${CF_ZONES}
+CF_HOSTS        | ${CF_HOSTS}
+CF_RECORDTYPES  | ${CF_RECORDTYPES}
+MODES           | ${MODES}
+----------------------------------------------------------------------
+"
+
+groupmod -o -g "${PGID}" hotio
+usermod -o -u "${PUID}" hotio
+
+if [[ ! -d "${CONFIG_DIR}/app" ]]; then
+    mkdir "${CONFIG_DIR}/app"
+    chown hotio:hotio "${CONFIG_DIR}/app"
+fi
