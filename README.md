@@ -27,7 +27,7 @@ The environment variables `PUID`, `PGID`, `UMASK` and `CRON_TIME` are all option
 -e CRON_TIME="*/5 * * * *"
 ```
 
-Use the following environment variables to configure the domains you would like to update.
+The following environment variables are used to configure the domains you would like to update.
 
 ```shell
 -e CF_USER="<your cf email>"
@@ -38,4 +38,4 @@ Use the following environment variables to configure the domains you would like 
 -e MODES="4;4;6"
 ```
 
-Note that we give 3 values each time for `CF_ZONES`, `CF_HOSTS`, `CF_RECORDTYPES` and `MODES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. The `MODES` variable can have the values `4` or `6`, depending on if you want to update a record with an ipv4 or ipv6 ip.
+Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS`, `CF_RECORDTYPES` and `MODES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. The `MODES` variable can have the values `4` or `6`, depending on if you want to update a record with an ipv4 or ipv6 ip.
