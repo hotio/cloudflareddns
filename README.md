@@ -15,7 +15,7 @@ LTC: `MMUFcGLiK6DnnHGFnN2MJLyTfANXw57bDY`
 Just the basics to get the container running:
 
 ```shell
-docker run --rm --name cloudflare-ddns -e TZ=Etc/UTC hotio/cloudflare-ddns
+docker run --rm --name cloudflare-ddns -v /tmp/cloudflare-ddns:/config -e TZ=Etc/UTC hotio/cloudflare-ddns
 ```
 
 The environment variables `PUID`, `PGID`, `UMASK` and `CRON_TIME` are all optional, the values you see below are the default values.
