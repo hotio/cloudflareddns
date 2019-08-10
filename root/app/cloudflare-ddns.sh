@@ -38,7 +38,7 @@ for index in ${!cfzone[*]}; do
     esac
 
     if ! [[ $newip =~ $regex ]]; then
-        echo -e "${cfhost[$index]} (${cftype[$index]}): "'\e[3m'"Returned IP from icanhazip.com is not valid! Check your connection."'\e[0m'
+        echo -e "${cfhost[$index]} (${cftype[$index]}): "'\e[3m'"Returned IP from detection service is not valid! Check your connection."'\e[0m'
     else
         if [[ ! -f "$cache" ]]; then
             zoneid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
