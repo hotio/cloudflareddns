@@ -41,3 +41,11 @@ The following environment variables are used to configure the domains you would 
 ```
 
 Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip.
+
+## Example of the log output
+
+```text
+2019-08-11 11:42:01 - [dig-google] - [test.example.com] - [A] - Updating IP [1.1.1.1] to [1.1.1.1]: NO CHANGE
+2019-08-11 11:43:01 - [dig-google] - [test.foobar.com] - [A] - Updating IP [8.8.8.8] to [1.1.1.1]: OK
+2019-08-11 11:43:01 - [dig-google] - [test2.foobar.com] - [AAAA] - Updating IP [2606:4700:4700::1111] to [2606:4700:4700::1111]: NO CHANGE
+```
