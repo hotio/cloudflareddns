@@ -49,3 +49,7 @@ Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORD
 2019-08-11 11:43:01 - [dig-google] - [test.foobar.com] - [A] - Updating IP [8.8.8.8] to [1.1.1.1]: OK
 2019-08-11 11:43:01 - [dig-google] - [test2.foobar.com] - [AAAA] - Updating IP [2606:4700:4700::1111] to [2606:4700:4700::1111]: NO CHANGE
 ```
+
+## Cached results from Cloudflare
+
+The returned results from Cloudflare are cached in memory (`/dev/shm`). This means minimal api calls to Cloudflare. If you have made any manual changes to the IP on the Cloudflare webinterface, for instance when wanting to test an update, a container restart is needed to clear the cache.
