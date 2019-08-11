@@ -20,12 +20,12 @@ PGID            | ${PGID}
 UMASK           | ${UMASK}
 TZ              | ${TZ}
 CRON_TIME       | ${CRON_TIME}
+DETECTION_MODE  | ${DETECTION_MODE}
 CF_USER         | ${CF_USER}
 CF_APIKEY       | ${CF_APIKEY}
 CF_ZONES        | ${CF_ZONES}
 CF_HOSTS        | ${CF_HOSTS}
 CF_RECORDTYPES  | ${CF_RECORDTYPES}
-MODES           | ${MODES}
 ----------------------------------------------------------------------
 "
 

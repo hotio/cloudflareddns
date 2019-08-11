@@ -2,7 +2,7 @@ FROM hotio/base
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
-ENV APP="Cloudflare DDNS" CRON_TIME="*/5 * * * *"
+ENV APP="Cloudflare DDNS" CRON_TIME="*/5 * * * *" DETECTION_MODE="dig-google"
 HEALTHCHECK --interval=60s CMD pidof cron || exit 1
 
 # install packages

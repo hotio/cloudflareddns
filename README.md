@@ -18,14 +18,17 @@ Just the basics to get the container running:
 docker run --rm --name cloudflare-ddns -v /tmp/cloudflare-ddns:/config -e TZ=Etc/UTC hotio/cloudflare-ddns
 ```
 
-The environment variables `PUID`, `PGID`, `UMASK` and `CRON_TIME` are all optional, the values you see below are the default values.
+The environment variables `PUID`, `PGID`, `UMASK`, `CRON_TIME` and `DETECTION_MODE` are all optional, the values you see below are the default values.
 
 ```shell
 -e PUID=1000
 -e PGID=1000
 -e UMASK=022
 -e CRON_TIME="*/5 * * * *"
+-e DETECTION_MODE="dig-google"
 ```
+
+Possible values for `DETECTION_MODE` are `dig-google` and `curl-icanhazip`.
 
 The following environment variables are used to configure the domains you would like to update.
 
@@ -35,7 +38,6 @@ The following environment variables are used to configure the domains you would 
 -e CF_ZONES="example.com;foobar.com;foobar.com"
 -e CF_HOSTS="test.example.com;test.foobar.com;test2.foobar.com"
 -e CF_RECORDTYPES="A;A;AAAA"
--e MODES="4;4;6"
 ```
 
-Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS`, `CF_RECORDTYPES` and `MODES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. The `MODES` variable can have the values `4` or `6`, depending on if you want to update a record with an ipv4 or ipv6 ip.
+Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip.
