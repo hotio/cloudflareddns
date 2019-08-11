@@ -49,6 +49,12 @@ for index in ${!cfzone[*]}; do
         AAAA-curl-icanhazip)
             newip=$(curl -s -6 icanhazip.com)
             ;;
+        A-curl-wtfismyip)
+            newip=$(curl -s -4 wtfismyip.com/text)
+            ;;
+        AAAA-curl-wtfismyip)
+            newip=$(curl -s -6 wtfismyip.com/text)
+            ;;
     esac
 
     if ! [[ $newip =~ $regex ]]; then

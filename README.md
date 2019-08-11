@@ -28,7 +28,7 @@ The environment variables `PUID`, `PGID`, `UMASK`, `CRON_TIME` and `DETECTION_MO
 -e DETECTION_MODE="dig-google"
 ```
 
-Possible values for `DETECTION_MODE` are `dig-google` and `curl-icanhazip`.
+Possible values for `DETECTION_MODE` are `dig-google`, `curl-icanhazip` and `curl-wtfismyip`.
 
 The following environment variables are used to configure the domains you would like to update.
 
