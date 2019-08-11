@@ -30,42 +30,29 @@ for index in ${!cfzone[*]}; do
     case "${cftype[$index]}" in
         A)
             regex='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+            mode=4
             ;;
         AAAA)
             regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
+            mode=6
             ;;
     esac
 
-    case "${cftype[$index]}-${DETECTION_MODE}" in
-        A-dig-google.com)
-            newip=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
+    case "${DETECTION_MODE}" in
+        dig-google.com)
+            newip=$(dig -${mode} TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
             ;;
-        AAAA-dig-google.com)
-            newip=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
+        curl-icanhazip.com)
+            newip=$(curl -s -${mode} icanhazip.com)
             ;;
-        A-curl-icanhazip.com)
-            newip=$(curl -s -4 icanhazip.com)
+        curl-wtfismyip.com)
+            newip=$(curl -s -${mode} wtfismyip.com/text)
             ;;
-        AAAA-curl-icanhazip.com)
-            newip=$(curl -s -6 icanhazip.com)
+        curl-showmyip.ca)
+            newip=$(curl -s -${mode} showmyip.ca/ip.php)
             ;;
-        A-curl-wtfismyip.com)
-            newip=$(curl -s -4 wtfismyip.com/text)
-            ;;
-        AAAA-curl-wtfismyip.com)
-            newip=$(curl -s -6 wtfismyip.com/text)
-            ;;
-        A-curl-showmyip.ca)
-            newip=$(curl -s -4 showmyip.ca/ip.php)
-            ;;
-        AAAA-curl-showmyip.ca)
-            newip=$(curl -s -6 showmyip.ca/ip.php)
-            ;;
-        A-curl-da.gd)
-            newip=$(curl -s -4 da.gd/ip)
-            ;;
-        AAAA-curl-da.gd)
-            newip=$(curl -s -6 da.gd/ip)
+        curl-da.gd)
+            newip=$(curl -s -${mode} da.gd/ip)
             ;;
     esac
 
