@@ -37,23 +37,29 @@ for index in ${!cfzone[*]}; do
     esac
 
     case "${cftype[$index]}-${DETECTION_MODE}" in
-        A-dig-google)
+        A-dig-google.com)
             newip=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
             ;;
-        AAAA-dig-google)
+        AAAA-dig-google.com)
             newip=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
             ;;
-        A-curl-icanhazip)
+        A-curl-icanhazip.com)
             newip=$(curl -s -4 icanhazip.com)
             ;;
-        AAAA-curl-icanhazip)
+        AAAA-curl-icanhazip.com)
             newip=$(curl -s -6 icanhazip.com)
             ;;
-        A-curl-wtfismyip)
+        A-curl-wtfismyip.com)
             newip=$(curl -s -4 wtfismyip.com/text)
             ;;
-        AAAA-curl-wtfismyip)
+        AAAA-curl-wtfismyip.com)
             newip=$(curl -s -6 wtfismyip.com/text)
+            ;;
+        A-curl-showmyip.ca)
+            newip=$(curl -s -4 showmyip.ca/ip.php)
+            ;;
+        AAAA-curl-showmyip.ca)
+            newip=$(curl -s -6 showmyip.ca/ip.php)
             ;;
     esac
 
