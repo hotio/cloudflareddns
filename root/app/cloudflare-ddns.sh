@@ -54,6 +54,9 @@ for index in ${!cfzone[*]}; do
         curl-da.gd)
             newip=$(curl -s -${mode} da.gd/ip)
             ;;
+        curl-seeip.org)
+            newip=$(curl -s -${mode} ip.seeip.org)
+            ;;
     esac
 
     if ! [[ $newip =~ $regex ]]; then
