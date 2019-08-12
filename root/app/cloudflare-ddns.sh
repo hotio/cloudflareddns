@@ -31,10 +31,12 @@ for index in ${!cfzone[*]}; do
         A)
             regex='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
             mode=4
+            record=A
             ;;
         AAAA)
             regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
             mode=6
+            record=AAAA
             ;;
     esac
 
@@ -43,7 +45,7 @@ for index in ${!cfzone[*]}; do
             newip=$(dig -${mode} TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
             ;;
         dig-opendns.com)
-            newip=$(dig -${mode} "${cftype[$index]}" +short myip.opendns.com @resolver1.opendns.com)
+            newip=$(dig -${mode} ${record} +short myip.opendns.com @resolver1.opendns.com)
             ;;
         curl-icanhazip.com)
             newip=$(curl -s -${mode} icanhazip.com)
