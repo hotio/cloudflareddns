@@ -42,6 +42,9 @@ for index in ${!cfzone[*]}; do
         dig-google.com)
             newip=$(dig -${mode} TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
             ;;
+        dig-opendns.com)
+            newip=$(dig -${mode} "${cftype[$index]}" +short myip.opendns.com @resolver1.opendns.com)
+            ;;
         curl-icanhazip.com)
             newip=$(curl -s -${mode} icanhazip.com)
             ;;

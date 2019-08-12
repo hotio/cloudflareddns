@@ -28,7 +28,7 @@ The environment variables `PUID`, `PGID`, `UMASK`, `CRON_TIME` and `DETECTION_MO
 -e DETECTION_MODE="dig-google.com"
 ```
 
-Possible values for `DETECTION_MODE` are `dig-google.com`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd` and `curl-seeip.org`.
+Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd` and `curl-seeip.org`.
 
 The following environment variables are used to configure the domains you would like to update.
 
