@@ -55,8 +55,8 @@
       "datasource": "${DS_CLOUDFLARE-DDNS}",
       "fontSize": "100%",
       "gridPos": {
-        "h": 4,
-        "w": 6,
+        "h": 7,
+        "w": 9,
         "x": 0,
         "y": 0
       },
@@ -177,7 +177,7 @@
           ],
           "limit": "1",
           "measurement": "domains",
-          "orderByTime": "ASC",
+          "orderByTime": "DESC",
           "policy": "default",
           "refId": "A",
           "resultFormat": "table",
@@ -229,5 +229,5 @@
   "timezone": "",
   "title": "Cloudflare DDNS",
   "uid": "4BV0YOOZz",
-  "version": 3
+  "version": 1
 }
