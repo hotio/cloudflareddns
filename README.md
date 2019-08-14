@@ -62,8 +62,7 @@ You can enable logging of the new ip to InfluxDB by setting `INFLUXDB_ENABLED` t
 
 ```shell
 -e INFLUXDB_ENABLED="false"
--e INFLUXDB_HOST="127.0.0.1"
--e INFLUXDB_PORT="8086"
+-e INFLUXDB_HOST="http://127.0.0.1:8086"
 -e INFLUXDB_DB="cloudflare-ddns"
 -e INFLUXDB_USER=""
 -e INFLUXDB_PASS=""
