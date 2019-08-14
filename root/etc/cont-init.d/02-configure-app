@@ -3,10 +3,12 @@
 
 if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
     if result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
-        echo "Connection succeeded!"
-        if ! echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
+        echo "Connection to \"${INFLUXDB_HOST}\" succeeded!"
+        if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
+            echo "Database \"${INFLUXDB_DB}\" found!"
+        else
             echo "Database \"${INFLUXDB_DB}\" not found! Creating database..."
-            curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}"
+            curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}" > /dev/null
         fi
     fi
 fi
