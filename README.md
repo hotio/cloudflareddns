@@ -18,7 +18,7 @@ Just the basics to get the container running:
 docker run --rm --name cloudflare-ddns -v /tmp/cloudflare-ddns:/config -e TZ=Etc/UTC hotio/cloudflare-ddns
 ```
 
-The environment variables `PUID`, `PGID`, `UMASK`, `CRON_TIME` and `DETECTION_MODE` are all optional, the values you see below are the default values.
+The environment variables `PUID`, `PGID`, `UMASK`, `CRON_TIME`, `DETECTION_MODE` and `LOG_LEVEL` are all optional, the values you see below are the default values.
 
 ```shell
 -e PUID=1000
@@ -26,9 +26,10 @@ The environment variables `PUID`, `PGID`, `UMASK`, `CRON_TIME` and `DETECTION_MO
 -e UMASK=022
 -e CRON_TIME="*/5 * * * *"
 -e DETECTION_MODE="dig-google.com"
+-e LOG_LEVEL=2
 ```
 
-Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd` and `curl-seeip.org`.
+Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd` and `curl-seeip.org`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates and `2` to also log when nothing has changed.
 
 The following environment variables are used to configure the domains you would like to update.
 

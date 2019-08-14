@@ -21,6 +21,7 @@ UMASK            | ${UMASK}
 TZ               | ${TZ}
 CRON_TIME        | ${CRON_TIME}
 DETECTION_MODE   | ${DETECTION_MODE}
+LOG_LEVEL        | ${LOG_LEVEL}
 CF_USER          | ${CF_USER}
 CF_APIKEY        | ${CF_APIKEY}
 CF_ZONES         | ${CF_ZONES}

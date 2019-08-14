@@ -19,6 +19,9 @@ read -r -a cfhost <<< "${CF_HOSTS}"
 read -r -a cftype <<< "${CF_RECORDTYPES}"
 IFS="${DEFAULTIFS}"
 
+regexv4='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
+
 ######################
 ## CHECK FOR NEW IP ##
 ######################
@@ -53,9 +56,6 @@ case "${DETECTION_MODE}" in
         newipv6=$(curl -s -6 ip.seeip.org)
         ;;
 esac
-
-regexv4='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
-regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
 
 #######################################
 ## LOG CONNECTION STATUS TO INFLUXDB ##
@@ -95,7 +95,7 @@ for index in ${!cfzone[*]}; do
     esac
 
     if ! [[ $newip =~ $regex ]]; then
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"${DETECTION_MODE}\" is not valid! Check your connection." >> "${LOG}"
+        [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"${DETECTION_MODE}\" is not valid! Check your connection." >> "${LOG}"
     else
         if [[ ! -f "$cache" ]]; then
             zoneid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
@@ -109,18 +109,18 @@ for index in ${!cfzone[*]}; do
         proxied=$(echo "$dnsrecords" | jq -r '.proxied' | head -1)
         ip=$(echo "$dnsrecords" | jq -r '.content' | head -1)
         if ! [[ $ip =~ $regex ]]; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"Cloudflare\" is not valid! Check your connection or configuration." >> "${LOG}"
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"Cloudflare\" is not valid! Check your connection or configuration." >> "${LOG}"
         else
             if [[ "$ip" != "$newip" ]]; then
                 if [[ $(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","proxied":'"$proxied"'}' | jq '.success') == true ]]; then
-                    echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: OK" >> "${LOG}"
+                    [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: OK" >> "${LOG}"
                     [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -s -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\""
                     rm "$cache"
                 else
-                    echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: FAILED" >> "${LOG}"
+                    [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: FAILED" >> "${LOG}"
                 fi
             else
-                echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: NO CHANGE" >> "${LOG}"
+                [[ ${LOG_LEVEL} -gt 1 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: NO CHANGE" >> "${LOG}"
             fi
         fi
     fi
