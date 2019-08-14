@@ -73,3 +73,5 @@ It is also recommended that you add `--hostname YOUR_CONTAINER_HOSTNAME` to your
 You can also import the grafana dashboard pictured below by copying and pasting the json ([Link to Grafana Dasboard JSON](https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/grafana/Cloudflare%20DDNS-1565783977844.json)). By default only the last entry is shown, but you can show all entries by removing `LIMIT 1` on the Query settings page.
 
 ![grafana_panel](https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/grafana/grafana.png "Grafana Dashboard Panel")
+
+Information about the domain updates can be found in `domains`. There's also connection status available for both ipv4 and ipv6 in `connection`.
