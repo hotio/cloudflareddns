@@ -70,4 +70,6 @@ You can enable logging of the new ip to InfluxDB by setting `INFLUXDB_ENABLED` t
 
 It is also recommended that you add the following to your docker command `--hostname YOUR_CONTAINER_HOSTNAME`, otherwise the hostname that is logged to InfluxDB will change on every container update.
 
+[Grafana Dasboard](https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/Cloudflare%20DDNS-1565783977844.json)
+
 ![grafana_panel](https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/grafana.png "Grafana Dashboard Panel")
