@@ -15,17 +15,23 @@ LTC: MMUFcGLiK6DnnHGFnN2MJLyTfANXw57bDY
 ----------------------------------------------------------------------
 ENVIRONMENT
 ----------------------------------------------------------------------
-PUID            | ${PUID}
-PGID            | ${PGID}
-UMASK           | ${UMASK}
-TZ              | ${TZ}
-CRON_TIME       | ${CRON_TIME}
-DETECTION_MODE  | ${DETECTION_MODE}
-CF_USER         | ${CF_USER}
-CF_APIKEY       | ${CF_APIKEY}
-CF_ZONES        | ${CF_ZONES}
-CF_HOSTS        | ${CF_HOSTS}
-CF_RECORDTYPES  | ${CF_RECORDTYPES}
+PUID             | ${PUID}
+PGID             | ${PGID}
+UMASK            | ${UMASK}
+TZ               | ${TZ}
+CRON_TIME        | ${CRON_TIME}
+DETECTION_MODE   | ${DETECTION_MODE}
+CF_USER          | ${CF_USER}
+CF_APIKEY        | ${CF_APIKEY}
+CF_ZONES         | ${CF_ZONES}
+CF_HOSTS         | ${CF_HOSTS}
+CF_RECORDTYPES   | ${CF_RECORDTYPES}
+INFLUXDB_ENABLED | ${INFLUXDB_ENABLED}
+INFLUXDB_HOST    | ${INFLUXDB_HOST}
+INFLUXDB_PORT    | ${INFLUXDB_PORT}
+INFLUXDB_DB      | ${INFLUXDB_DB}
+INFLUXDB_USER    | ${INFLUXDB_USER}
+INFLUXDB_PASS    | ${INFLUXDB_PASS}
 ----------------------------------------------------------------------
 "
 

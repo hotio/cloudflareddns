@@ -55,3 +55,18 @@ Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORD
 The returned results from Cloudflare are cached in memory (`/dev/shm`). This means minimal api calls to Cloudflare. If you have made any manual changes to the IP on the Cloudflare webinterface, for instance when wanting to test an update, a container restart is needed to clear the cache.
 
 The proxy setting (orange cloud) is also cached and re-set based on the previous value, so if you made modifications to this setting, you should restart the container so that the script is aware of the new setting.
+
+## InfluxDB Logging
+
+You can enable logging of the new ip to InfluxDB by setting `INFLUXDB_ENABLED` to `true`, below are the defaults. When a succesful update has been done to Cloudflare, the new ip will be logged.
+
+```shell
+-e INFLUXDB_ENABLED="false"
+-e INFLUXDB_HOST="127.0.0.1"
+-e INFLUXDB_PORT="8086"
+-e INFLUXDB_DB="cloudflare-ddns"
+-e INFLUXDB_USER=""
+-e INFLUXDB_PASS=""
+```
+
+It is also recommended that you add the following to your docker command `--hostname YOUR_CONTAINER_HOSTNAME`, otherwise the hostname that is logged to InfluxDB will change on every container update.
