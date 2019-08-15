@@ -2,6 +2,6 @@
 # shellcheck shell=bash
 
 echo "PATH=/usr/bin:/bin:/usr/local/bin" > /etc/cron.d/crontab
-echo "${CRON_TIME} hotio /app/cloudflare-ddns.sh" >> /etc/cron.d/crontab
+echo "${CRON_TIME} hotio ${APP_DIR}/cloudflare-ddns.sh" >> /etc/cron.d/crontab
 chmod 644 /etc/cron.d/crontab
-chmod 755 /app/cloudflare-ddns.sh
+chmod 755 "${APP_DIR}/cloudflare-ddns.sh"
