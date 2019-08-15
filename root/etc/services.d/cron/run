@@ -1,4 +1,6 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-exec cron -f
+umask "${UMASK}"
+
+exec s6-setuidgid hotio "${APP_DIR}/cloudflare-ddns.sh"
