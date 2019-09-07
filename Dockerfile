@@ -12,7 +12,7 @@ RUN apt update && \
 # clean up
     apt autoremove -y && \
     apt clean && \
-    rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* /etc/cont-init.d/*
+    rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
 
 COPY root/ /
 
