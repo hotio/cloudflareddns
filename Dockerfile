@@ -15,3 +15,5 @@ RUN apt update && \
     rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* /etc/cont-init.d/*
 
 COPY root/ /
+
+RUN chmod 755 "${APP_DIR}/cloudflare-ddns.sh"

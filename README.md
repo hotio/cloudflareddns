@@ -18,7 +18,7 @@ Just the basics to get the container running:
 docker run --rm --name cloudflare-ddns -e TZ=Etc/UTC hotio/cloudflare-ddns
 ```
 
-The environment variables `PUID`, `PGID`, `UMASK`, `INTERVAL`, `DETECTION_MODE` and `LOG_LEVEL` are all optional, the values you see below are the default values.
+The environment variables below are all optional, the values you see are the defaults.
 
 ```shell
 -e PUID=1000

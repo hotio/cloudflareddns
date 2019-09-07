@@ -1,4 +1,0 @@
-#!/usr/bin/with-contenv bash
-# shellcheck shell=bash
-
-chmod 755 "${APP_DIR}/cloudflare-ddns.sh"
