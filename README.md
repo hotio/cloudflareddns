@@ -1,7 +1,8 @@
-# [docker-cloudflare-ddns](https://github.com/hotio/docker-cloudflare-ddns)
+# cloudflare-ddns
 
-![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns?style=flat-square)
-![Drone (cloud)](https://img.shields.io/drone/build/hotio/docker-cloudflare-ddns?style=flat-square)
+[![GitHub](https://img.shields.io/badge/source-github-lightgrey?style=flat-square)](https://github.com/hotio/docker-cloudflare-ddns)
+[![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns?style=flat-square)](https://hub.docker.com/r/hotio/cloudflare-ddns)
+[![Drone (cloud)](https://img.shields.io/drone/build/hotio/docker-cloudflare-ddns?style=flat-square)](https://cloud.drone.io/hotio/docker-cloudflare-ddns)
 
 ## Donations
 
