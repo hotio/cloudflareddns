@@ -1,8 +1,7 @@
-# Cloudflare DDNS
+# [docker-cloudflare-ddns](https://github.com/hotio/docker-cloudflare-ddns)
 
-[![badge](https://images.microbadger.com/badges/image/hotio/cloudflare-ddns.svg)](https://microbadger.com/images/hotio/cloudflare-ddns "Get your own image badge on microbadger.com")
-[![badge](https://images.microbadger.com/badges/version/hotio/cloudflare-ddns.svg)](https://microbadger.com/images/hotio/cloudflare-ddns "Get your own version badge on microbadger.com")
-[![badge](https://images.microbadger.com/badges/commit/hotio/cloudflare-ddns.svg)](https://microbadger.com/images/hotio/cloudflare-ddns "Get your own commit badge on microbadger.com")
+![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns?style=flat-square)
+![Drone (cloud)](https://img.shields.io/drone/build/hotio/docker-cloudflare-ddns?style=flat-square)
 
 ## Donations
 
