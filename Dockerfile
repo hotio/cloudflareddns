@@ -18,8 +18,5 @@ COPY root/ /
 
 RUN chmod 755 "${APP_DIR}/cloudflare-ddns.sh"
 
-ARG COMMIT
 ARG TAG
-ARG APP
-
-ENV COMMIT="${COMMIT}" TAG="${TAG}" APP="${APP}"
+ENV TAG="${TAG}"
