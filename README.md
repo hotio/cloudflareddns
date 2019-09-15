@@ -28,8 +28,8 @@ Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `c
 The following environment variables are used to configure the domains you would like to update.
 
 ```shell
--e CF_USER="<your cf email>"
--e CF_APIKEY="<your cf apikey>"
+-e CF_USER="your.cf.email@example.com"
+-e CF_APIKEY="yourcfapikey"
 -e CF_ZONES="example.com;foobar.com;foobar.com"
 -e CF_HOSTS="test.example.com;test.foobar.com;test2.foobar.com"
 -e CF_RECORDTYPES="A;A;AAAA"
