@@ -1,5 +1,4 @@
-ARG BRANCH
-FROM hotio/base:${BRANCH}
+FROM hotio/base
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
