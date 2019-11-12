@@ -1,8 +1,7 @@
 # cloudflare-ddns
 
-[![GitHub](https://img.shields.io/badge/source-github-lightgrey?style=flat-square)](https://github.com/hotio/docker-cloudflare-ddns)
-[![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns?style=flat-square)](https://hub.docker.com/r/hotio/cloudflare-ddns)
-[![Drone (cloud)](https://img.shields.io/drone/build/hotio/docker-cloudflare-ddns?style=flat-square)](https://cloud.drone.io/hotio/docker-cloudflare-ddns)
+[![GitHub](https://img.shields.io/badge/source-github-lightgrey)](https://github.com/hotio/docker-cloudflare-ddns)
+[![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns)](https://hub.docker.com/r/hotio/cloudflare-ddns)
 
 ## Starting the container
 
@@ -39,10 +38,10 @@ Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORD
 
 ## Tags
 
-| Tag      | Description                    |
-| ---------|--------------------------------|
-| latest   | The same as `stable`           |
-| stable   | Stable version                 |
+| Tag      | Description          | Build Status                                                                                                                                                            |
+| ---------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| latest   | The same as `stable` |                                                                                                                                                                         |
+| stable   | Stable version       | [![Build Status](https://cloud.drone.io/api/badges/hotio/docker-cloudflare-ddns/status.svg?ref=refs/heads/stable)](https://cloud.drone.io/hotio/docker-cloudflare-ddns) |
 
 You can also find tags that reference a commit or version number.
 
