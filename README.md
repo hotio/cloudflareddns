@@ -37,6 +37,15 @@ The following environment variables are used to configure the domains you would 
 
 Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip.
 
+## Tags
+
+| Tag      | Description                    |
+| ---------|--------------------------------|
+| latest   | The same as `stable`           |
+| stable   | Stable version                 |
+
+You can also find tags that reference a commit or version number.
+
 ## Example of the log output
 
 ```text

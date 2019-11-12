@@ -4,10 +4,15 @@ on:
     - cron:  '0 22 * * 5'
 
 jobs:
-  update-master:
+  update:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [stable]
     steps:
     - uses: actions/checkout@master
+      with:
+        ref: ${{ matrix.branch }}
     - name: Configure git
       run: |
         git config --local user.email "action@github.com"
@@ -21,3 +26,4 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ matrix.branch }}
