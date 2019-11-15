@@ -38,10 +38,10 @@ Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORD
 
 ## Tags
 
-| Tag      | Description          | Build Status                                                                                                                                                            |
-| ---------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| latest   | The same as `stable` |                                                                                                                                                                         |
-| stable   | Stable version       | [![Build Status](https://cloud.drone.io/api/badges/hotio/docker-cloudflare-ddns/status.svg?ref=refs/heads/stable)](https://cloud.drone.io/hotio/docker-cloudflare-ddns) |
+| Tag      | Description          | Build Status                                                                                                                                                            | Last Updated                                                                                                  |
+| ---------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| latest   | The same as `stable` |                                                                                                                                                                         |                                                                                                               |
+| stable   | Stable version       | [![Build Status](https://cloud.drone.io/api/badges/hotio/docker-cloudflare-ddns/status.svg?ref=refs/heads/stable)](https://cloud.drone.io/hotio/docker-cloudflare-ddns) | ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/hotio/docker-cloudflare-ddns/stable) |
 
 You can also find tags that reference a commit or version number.
 
