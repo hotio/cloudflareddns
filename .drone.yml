@@ -180,8 +180,9 @@ clone:
   disable: true
 
 trigger:
-  event:
-    - push
+  status:
+  - success
+  - failure
 
 steps:
 - name: notification
