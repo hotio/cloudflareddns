@@ -9,7 +9,7 @@
 Just the basics to get the container running:
 
 ```shell
-docker run --rm --name cloudflare-ddns -e TZ=Etc/UTC hotio/cloudflare-ddns
+docker run --rm --name cloudflare-ddns hotio/cloudflare-ddns
 ```
 
 The environment variables below are all optional, the values you see are the defaults.
@@ -17,7 +17,8 @@ The environment variables below are all optional, the values you see are the def
 ```shell
 -e PUID=1000
 -e PGID=1000
--e UMASK=022
+-e UMASK=002
+-e TZ="Etc/UTC"
 -e INTERVAL=300
 -e DETECTION_MODE="dig-google.com"
 -e LOG_LEVEL=2
