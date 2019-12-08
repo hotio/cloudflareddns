@@ -174,7 +174,7 @@ depends_on:
 
 ---
 kind: pipeline
-name: discord
+name: notify
 
 trigger:
   status:
@@ -182,7 +182,7 @@ trigger:
   - failure
 
 steps:
-- name: notification
+- name: discord
   image: ${DRONE_REPO_OWNER}/base
   pull: always
   environment:
@@ -191,7 +191,8 @@ steps:
     DISCORD_TOKEN:
       from_secret: discord_token
   commands:
-    - bash discord.sh
+    - curl -fsSL https://gist.githubusercontent.com/hotio/d490b6447ddde9634475ddacbc85d8c1/raw/discord-build-notify.sh > discord-build-notify.sh
+    - bash discord-build-notify.sh
 
 depends_on:
   - manifest
