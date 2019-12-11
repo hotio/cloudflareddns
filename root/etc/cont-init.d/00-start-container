@@ -27,5 +27,15 @@ INFLUXDB_PASS=${INFLUXDB_PASS}
 ----------------------------------------------------------------------
 "
 
-groupmod -o -g "${PGID}" hotio
-usermod -o -u "${PUID}" hotio
+if [[ ! "${PUID}" -eq 0 ]] && [[ ! "${PGID}" -eq 0 ]]; then
+    echo "Executing usermod..."
+    mkdir "/tmp/temphome"
+    usermod -d "/tmp/temphome" hotio
+    usermod -o -u "${PUID}" hotio
+    usermod -d "${CONFIG_DIR}" hotio
+    rm -rf "/tmp/temphome"
+    groupmod -o -g "${PGID}" hotio
+else
+    echo "Running as root is not supported, please fix your PUID and PGID!"
+    exit 1
+fi
