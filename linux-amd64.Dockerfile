@@ -1,4 +1,4 @@
-FROM hotio/base
+FROM hotio/base:stable-linux-amd64
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
