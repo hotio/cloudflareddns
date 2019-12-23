@@ -1,4 +1,4 @@
-FROM hotio/base:stable-linux-arm64
+FROM hotio/base@sha256:0aea656b5eed118ccc459250366d1a919c3eeb60cf680c49aa72c8141275d9c3
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
