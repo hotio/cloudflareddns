@@ -9,7 +9,7 @@
 Just the basics to get the container running:
 
 ```shell
-docker run --rm --name cloudflare-ddns hotio/cloudflare-ddns
+docker run --rm --name cloudflare-ddns -v /<host_folder>:/config hotio/cloudflare-ddns
 ```
 
 The environment variables below are all optional, the values you see are the defaults.
