@@ -19,6 +19,7 @@ The environment variables below are all optional, the values you see are the def
 -e PGID=1000
 -e UMASK=002
 -e TZ="Etc/UTC"
+-e ARGS=""
 -e INTERVAL=300
 -e DETECTION_MODE="dig-google.com"
 -e LOG_LEVEL=2
