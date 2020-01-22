@@ -32,12 +32,13 @@ The following environment variables are used to configure the domains you would 
 ```shell
 -e CF_USER="your.cf.email@example.com"
 -e CF_APIKEY="yourcfapikey"
+-e CF_APITOKEN=""
 -e CF_ZONES="example.com;foobar.com;foobar.com"
 -e CF_HOSTS="test.example.com;test.foobar.com;test2.foobar.com"
 -e CF_RECORDTYPES="A;A;AAAA"
 ```
 
-Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip.
+Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. If you use `CF_APITOKEN`, you can leave `CF_USER` and `CF_APIKEY` empty.
 
 ## Tags
 
