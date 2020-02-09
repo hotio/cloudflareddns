@@ -57,24 +57,24 @@ while true; do
             newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com)
             ;;
         curl-icanhazip.com)
-            newipv4=$(curl -fsSL -4 icanhazip.com)
-            newipv6=$(curl -fsSL -6 icanhazip.com)
+            newipv4=$(curl -fsL -4 icanhazip.com)
+            newipv6=$(curl -fsL -6 icanhazip.com)
             ;;
         curl-wtfismyip.com)
-            newipv4=$(curl -fsSL -4 wtfismyip.com/text)
-            newipv6=$(curl -fsSL -6 wtfismyip.com/text)
+            newipv4=$(curl -fsL -4 wtfismyip.com/text)
+            newipv6=$(curl -fsL -6 wtfismyip.com/text)
             ;;
         curl-showmyip.ca)
-            newipv4=$(curl -fsSL -4 showmyip.ca/ip.php)
-            newipv6=$(curl -fsSL -6 showmyip.ca/ip.php)
+            newipv4=$(curl -fsL -4 showmyip.ca/ip.php)
+            newipv6=$(curl -fsL -6 showmyip.ca/ip.php)
             ;;
         curl-da.gd)
-            newipv4=$(curl -fsSL -4 da.gd/ip)
-            newipv6=$(curl -fsSL -6 da.gd/ip)
+            newipv4=$(curl -fsL -4 da.gd/ip)
+            newipv6=$(curl -fsL -6 da.gd/ip)
             ;;
         curl-seeip.org)
-            newipv4=$(curl -fsSL -4 ip.seeip.org)
-            newipv6=$(curl -fsSL -6 ip.seeip.org)
+            newipv4=$(curl -fsL -4 ip.seeip.org)
+            newipv6=$(curl -fsL -6 ip.seeip.org)
             ;;
     esac
 
