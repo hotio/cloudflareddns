@@ -119,13 +119,13 @@ while true; do
                     response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json") && \
                         zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id') && \
                         response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json") && \
-                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
+                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
                         echo "$dnsrecords" > "$cache"
                 else
                     response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json") && \
                         zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id') && \
                         response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json") && \
-                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
+                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
                         echo "$dnsrecords" > "$cache"
                 fi
             else
@@ -135,6 +135,7 @@ while true; do
             if [[ -n ${dnsrecords} ]]; then
                 id=$(echo "$dnsrecords" | jq -r '.id' | head -1)
                 proxied=$(echo "$dnsrecords" | jq -r '.proxied' | head -1)
+                ttl=$(echo "$dnsrecords" | jq -r '.ttl' | head -1)
                 ip=$(echo "$dnsrecords" | jq -r '.content' | head -1)
                 if ! [[ $ip =~ $regex ]]; then
                     [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"Cloudflare\" is not valid! Check your connection or configuration."
@@ -142,9 +143,9 @@ while true; do
                     if [[ "$ip" != "$newip" ]]; then
                         result=NOK
                         if [[ -z ${cfapitoken} ]]; then
-                            response=$(curl -fsSL -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","proxied":'"$proxied"'}') && result=OK
+                            response=$(curl -fsSL -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
                         else
-                            response=$(curl -fsSL -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","proxied":'"$proxied"'}') && result=OK
+                            response=$(curl -fsSL -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
                         fi
                         if [[ ${result} == OK ]]; then
                             [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: OK"
