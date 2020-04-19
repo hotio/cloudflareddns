@@ -29,6 +29,8 @@ fi
 cfuser="${CF_USER}"
 cfapikey="${CF_APIKEY}"
 cfapitoken="${CF_APITOKEN}"
+cfapitokenzone="${CF_APITOKEN_ZONE}"
+[[ -z $cfapitokenzone ]] && cfapitokenzone="$cfapitoken"
 
 DEFAULTIFS="${IFS}"
 IFS=';'
@@ -128,7 +130,7 @@ while true; do
                         echo "$dnsrecords" > "$cache"
                 else
                     if [[ ${cfzone[$index]} == *.* ]]; then
-                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json") && \
+                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "Authorization: Bearer $cfapitokenzone" -H "Content-Type: application/json") && \
                         zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
                     else
                         zoneid=${cfzone[$index]}
