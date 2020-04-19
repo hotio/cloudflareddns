@@ -27,7 +27,7 @@ The environment variables below are all optional, the values you see are the def
 -e LOG_LEVEL=2
 ```
 
-Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd` and `curl-seeip.org`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates and `2` to also log when nothing has changed.
+Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates and `2` to also log when nothing has changed.
 
 The following environment variables are used to configure the domains you would like to update.
 
