@@ -35,6 +35,7 @@ The following environment variables are used to configure the domains you would 
 -e CF_USER="your.cf.email@example.com"
 -e CF_APIKEY="yourcfapikey"
 -e CF_APITOKEN=""
+-e CF_APITOKEN_ZONE=""
 -e CF_ZONES="example.com;foobar.com;foobar.com"
 -e CF_HOSTS="test.example.com;test.foobar.com;test2.foobar.com"
 -e CF_RECORDTYPES="A;A;AAAA"
@@ -44,7 +45,7 @@ Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORD
 
 ## Zone ID
 
-Instead of the `zone_name`, you can also fill in a `zone_id` in `CF_ZONES`. When using a `zone_id`, you can use a scoped token (`CF_APITOKEN`) that only needs the `DNS Edit` permissions. This improves security. The configuration could look like the example below.
+Instead of the `zone_name`, you can also fill in a `zone_id` in `CF_ZONES`. When using a `zone_id`, you can use a scoped token (`CF_APITOKEN`) that only needs the `Zone - DNS - Edit` permissions. This improves security. The configuration could look like the example below.
 
 ```shell
 -e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
@@ -52,6 +53,27 @@ Instead of the `zone_name`, you can also fill in a `zone_id` in `CF_ZONES`. When
 -e CF_HOSTS="example.com;test.foobar.com"
 -e CF_RECORDTYPES="A;A"
 ```
+
+## Seperate API Tokens
+
+If you do not prefer to use a `zone_id`, but prefer some more security, you can use 2 seperate tokens.
+
+`CF_APITOKEN` configured with:
+
+**Permissions**  
+`Zone - DNS - Edit`  
+**Zone Resources**  
+`Include - Specific zone - example.com`  
+`Include - Specific zone - foobar.com`
+
+`CF_APITOKEN_ZONE` configured with:
+
+**Permissions**  
+`Zone - Zone - Read`  
+**Zone Resources**  
+`Include - All zones`
+
+Leaving `CF_APITOKEN_ZONE` blank would mean that only `CF_APITOKEN` will be used and thus that token should have all required permissions. Which usually means that the token could edit all zones or not be able to fetch the `zone_id` from the `zone_name`.
 
 ## Tags
 
