@@ -58,6 +58,10 @@ while true; do
             newipv4=$(dig -4 A +short myip.opendns.com @resolver1.opendns.com)
             newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com)
             ;;
+        dig-whoami.cloudflare)
+            newipv4=$(dig -4 TXT +short whoami.cloudflare @1.1.1.1 ch | tr -d '"')
+            newipv6=$(dig -6 TXT +short whoami.cloudflare @2606:4700:4700::1111 ch | tr -d '"')
+            ;;
         curl-icanhazip.com)
             newipv4=$(curl -fsL -4 icanhazip.com)
             newipv6=$(curl -fsL -6 icanhazip.com)
@@ -77,6 +81,10 @@ while true; do
         curl-seeip.org)
             newipv4=$(curl -fsL -4 ip.seeip.org)
             newipv6=$(curl -fsL -6 ip.seeip.org)
+            ;;
+        curl-ifconfig.co)
+            newipv4=$(curl -fsL -4 ifconfig.co)
+            newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
     esac
 
