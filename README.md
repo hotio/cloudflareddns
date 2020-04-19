@@ -42,6 +42,17 @@ The following environment variables are used to configure the domains you would 
 
 Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. If you use `CF_APITOKEN`, you can leave `CF_USER` and `CF_APIKEY` empty.
 
+## Zone ID
+
+Instead of the `zone_name`, you can also fill in a `zone_id` in `CF_ZONES`. When using a `zone_id`, you can use a scoped token that only needs the `DNS Edit` permissions. This improves security. The configuration could look like the sample below.
+
+```shell
+-e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
+-e CF_ZONES="zbpsi9ceikrdnnym27s2xnp6s5dvj6ep;dccbe6grakumohwwd4amh4o46yupepn8"
+-e CF_HOSTS="example.com;test.foobar.com"
+-e CF_RECORDTYPES="A;A"
+```
+
 ## Tags
 
 | Tag      | Description          | Build Status                                                                                                                                                            | Last Updated                                                                                                                                                                    |
