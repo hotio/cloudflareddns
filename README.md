@@ -44,7 +44,7 @@ Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORD
 
 ## Zone ID
 
-Instead of the `zone_name`, you can also fill in a `zone_id` in `CF_ZONES`. When using a `zone_id`, you can use a scoped token that only needs the `DNS Edit` permissions. This improves security. The configuration could look like the sample below.
+Instead of the `zone_name`, you can also fill in a `zone_id` in `CF_ZONES`. When using a `zone_id`, you can use a scoped token (`CF_APITOKEN`) that only needs the `DNS Edit` permissions. This improves security. The configuration could look like the example below.
 
 ```shell
 -e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
