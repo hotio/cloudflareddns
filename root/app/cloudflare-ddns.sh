@@ -116,14 +116,24 @@ while true; do
                 zoneid=""
                 dnsrecords=""
                 if [[ -z ${cfapitoken} ]]; then
-                    response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json") && \
-                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id') && \
+                    if [[ ${cfzone[$index]} == *.* ]]; then
+                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json") && \
+                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
+                    else
+                        zoneid=${cfzone[$index]}
+                    fi
+                    [[ -n $zoneid ]] && \
                         response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json") && \
                         dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
                         echo "$dnsrecords" > "$cache"
                 else
-                    response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json") && \
-                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id') && \
+                    if [[ ${cfzone[$index]} == *.* ]]; then
+                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json") && \
+                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
+                    else
+                        zoneid=${cfzone[$index]}
+                    fi
+                    [[ -n $zoneid ]] && \
                         response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json") && \
                         dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
                         echo "$dnsrecords" > "$cache"
