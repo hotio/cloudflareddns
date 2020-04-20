@@ -35,7 +35,7 @@ The following environment variables are used to configure the domains you would 
 
 ```shell
 -e CF_USER="your.cf.email@example.com"
--e CF_APIKEY="yourcfapikey"
+-e CF_APIKEY="your.global.apikey"
 -e CF_APITOKEN=""
 -e CF_APITOKEN_ZONE=""
 -e CF_ZONES="example.com;foobar.com;foobar.com"
@@ -85,6 +85,48 @@ If you do not prefer to use a `zone_id`, but prefer some more security, you can 
 `Include - All zones`
 
 Leaving `CF_APITOKEN_ZONE` blank would mean that only `CF_APITOKEN` will be used and thus that token should have all required permissions. Which usually means that the token could edit all zones or not be able to fetch the `zone_id` from the `zone_name`.
+
+## Configuration combination examples
+
+Below are some example configuration combinations, ordered from most secure to least secure.
+
+* We use a `zone_id` so that our token only needs the permissions `Zone - DNS - Edit`.
+
+```shell
+-e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
+-e CF_ZONES="zbpsi9ceikrdnnym27s2xnp6s5dvj6ep;axozor886pyja7nmbcvu5kh7dp9557j4"
+-e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_RECORDTYPES="A;A"
+```
+
+* We use additionally a `CF_APITOKEN_ZONE` with the permissions `Zone - Zone - Read` to query the zones and getting the `zone_id`.
+
+```shell
+-e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
+-e CF_APITOKEN_ZONE="8m4TxzWb9QHXEpTwQDMugkKuHRavsxoK8qmJ4P7M"
+-e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
+-e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_RECORDTYPES="A;A"
+```
+
+* We use only `CF_APITOKEN`, but with the permissions `Zone - DNS - Edit` and `Zone - Zone - Read`.
+
+```shell
+-e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
+-e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
+-e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_RECORDTYPES="A;A"
+```
+
+* We use `CF_USER` and `CF_APIKEY`, basically giving full control over our account.
+
+```shell
+-e CF_USER="your.cf.email@example.com"
+-e CF_APIKEY="your.global.apikey"
+-e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
+-e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_RECORDTYPES="A;A"
+```
 
 ## Example of the log output
 
