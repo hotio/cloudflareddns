@@ -48,6 +48,8 @@ regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
 while true; do
 
     ## CHECK FOR NEW IP ##
+    newipv4="disabled"
+    newipv6="disabled"
     [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Trying to get IP..."
     case "${DETECTION_MODE}" in
         dig-google.com)
@@ -87,8 +89,8 @@ while true; do
             [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
     esac
-    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - IPv4 is: $newipv4"
-    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - IPv6 is: $newipv6"
+    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - IPv4 is: [$newipv4]"
+    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - IPv6 is: [$newipv6]"
 
     ## LOG CONNECTION STATUS TO INFLUXDB IF ENABLED ##
     if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
