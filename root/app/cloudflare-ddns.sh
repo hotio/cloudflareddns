@@ -30,7 +30,6 @@ cfuser="${CF_USER}"
 cfapikey="${CF_APIKEY}"
 cfapitoken="${CF_APITOKEN}"
 cfapitokenzone="${CF_APITOKEN_ZONE}"
-[[ -z $cfapitokenzone ]] && cfapitokenzone="$cfapitoken"
 
 DEFAULTIFS="${IFS}"
 IFS=';'
@@ -45,6 +44,16 @@ regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
 #################
 ## UPDATE LOOP ##
 #################
+
+curl_header() {
+    if [[ -n $cfapitokenzone ]] && [[ $* != *dns_records* ]]; then
+        curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitokenzone" "$@"
+    elif [[ -n $cfapitoken ]]; then
+        curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitoken" "$@"
+    else
+        curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" "$@"
+    fi
+}
 
 while true; do
 
@@ -125,29 +134,16 @@ while true; do
             if [[ ! -f "$cache" ]]; then
                 zoneid=""
                 dnsrecords=""
-                if [[ -z ${cfapitoken} ]]; then
-                    if [[ ${cfzone[$index]} == *.* ]]; then
-                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json") && \
-                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
-                    else
-                        zoneid=${cfzone[$index]}
-                    fi
-                    [[ -n $zoneid ]] && \
-                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json") && \
-                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
-                        echo "$dnsrecords" > "$cache"
+                if [[ ${cfzone[$index]} == *.* ]]; then
+                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones") && \
+                    zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
                 else
-                    if [[ ${cfzone[$index]} == *.* ]]; then
-                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones" -H "Authorization: Bearer $cfapitokenzone" -H "Content-Type: application/json") && \
-                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
-                    else
-                        zoneid=${cfzone[$index]}
-                    fi
-                    [[ -n $zoneid ]] && \
-                        response=$(curl -fsSL -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json") && \
-                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
-                        echo "$dnsrecords" > "$cache"
+                    zoneid=${cfzone[$index]}
                 fi
+                [[ -n $zoneid ]] && \
+                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records") && \
+                    dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
+                    echo "$dnsrecords" > "$cache"
             else
                 dnsrecords=$(cat "$cache")
                 zoneid=$(echo "$dnsrecords" | jq -r '.zone_id' | head -1)
@@ -162,11 +158,7 @@ while true; do
                 else
                     if [[ "$ip" != "$newip" ]]; then
                         result=NOK
-                        if [[ -z ${cfapitoken} ]]; then
-                            response=$(curl -fsSL -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" -H "Content-Type: application/json" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
-                        else
-                            response=$(curl -fsSL -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" -H "Authorization: Bearer $cfapitoken" -H "Content-Type: application/json" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
-                        fi
+                        response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
                         if [[ ${result} == OK ]]; then
                             [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: OK"
                             [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\""
