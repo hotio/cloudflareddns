@@ -51,40 +51,40 @@ while true; do
     [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Trying to get IP..."
     case "${DETECTION_MODE}" in
         dig-google.com)
-            newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
-            newipv6=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
             ;;
         dig-opendns.com)
-            newipv4=$(dig -4 A +short myip.opendns.com @resolver1.opendns.com)
-            newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 A +short myip.opendns.com @resolver1.opendns.com)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com)
             ;;
         dig-whoami.cloudflare)
-            newipv4=$(dig -4 TXT +short whoami.cloudflare @1.1.1.1 ch | tr -d '"')
-            newipv6=$(dig -6 TXT +short whoami.cloudflare @2606:4700:4700::1111 ch | tr -d '"')
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short whoami.cloudflare @1.1.1.1 ch | tr -d '"')
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short whoami.cloudflare @2606:4700:4700::1111 ch | tr -d '"')
             ;;
         curl-icanhazip.com)
-            newipv4=$(curl -fsL -4 icanhazip.com)
-            newipv6=$(curl -fsL -6 icanhazip.com)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 icanhazip.com)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 icanhazip.com)
             ;;
         curl-wtfismyip.com)
-            newipv4=$(curl -fsL -4 wtfismyip.com/text)
-            newipv6=$(curl -fsL -6 wtfismyip.com/text)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 wtfismyip.com/text)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 wtfismyip.com/text)
             ;;
         curl-showmyip.ca)
-            newipv4=$(curl -fsL -4 showmyip.ca/ip.php)
-            newipv6=$(curl -fsL -6 showmyip.ca/ip.php)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 showmyip.ca/ip.php)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 showmyip.ca/ip.php)
             ;;
         curl-da.gd)
-            newipv4=$(curl -fsL -4 da.gd/ip)
-            newipv6=$(curl -fsL -6 da.gd/ip)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 da.gd/ip)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 da.gd/ip)
             ;;
         curl-seeip.org)
-            newipv4=$(curl -fsL -4 ip.seeip.org)
-            newipv6=$(curl -fsL -6 ip.seeip.org)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 ip.seeip.org)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ip.seeip.org)
             ;;
         curl-ifconfig.co)
-            newipv4=$(curl -fsL -4 ifconfig.co)
-            newipv6=$(curl -fsL -6 ifconfig.co)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 ifconfig.co)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
     esac
     [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - IPv4 is: $newipv4"
