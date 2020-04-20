@@ -134,21 +134,26 @@ while true; do
             if [[ ! -f "$cache" ]]; then
                 zoneid=""
                 dnsrecords=""
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to get DNS records from \"Cloudflare\"..."
                 if [[ ${cfzone[$index]} == *.* ]]; then
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones") && \
                     zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
+                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Zone ID returned by \"Cloudflare\" is: $zoneid"
                 else
                     zoneid=${cfzone[$index]}
+                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Zone ID supplied by \"CF_ZONES\" is: $zoneid"
                 fi
                 [[ -n $zoneid ]] && \
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records") && \
                     dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
-                    echo "$dnsrecords" > "$cache"
+                    echo "$dnsrecords" > "$cache" && \
+                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Written DNS records to cache file: $cache"
             else
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Reading DNS records from cache file: $cache"
                 dnsrecords=$(cat "$cache")
-                zoneid=$(echo "$dnsrecords" | jq -r '.zone_id' | head -1)
             fi
             if [[ -n ${dnsrecords} ]]; then
+                zoneid=$(echo "$dnsrecords" | jq -r '.zone_id' | head -1)
                 id=$(echo "$dnsrecords" | jq -r '.id' | head -1)
                 proxied=$(echo "$dnsrecords" | jq -r '.proxied' | head -1)
                 ttl=$(echo "$dnsrecords" | jq -r '.ttl' | head -1)
@@ -157,6 +162,7 @@ while true; do
                     [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"Cloudflare\" is not valid! Check your connection or configuration."
                 else
                     if [[ "$ip" != "$newip" ]]; then
+                        [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to update DNS record..."
                         result=NOK
                         response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
                         if [[ ${result} == OK ]]; then
