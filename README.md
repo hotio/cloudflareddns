@@ -24,7 +24,9 @@ The environment variables below are all optional, the values you see are the def
 -e ARGS=""
 -e INTERVAL=300
 -e DETECTION_MODE="dig-google.com"
--e LOG_LEVEL=2
+-e LOG_LEVEL=3
+-e CHECK_IPV4="true"
+-e CHECK_IPV6="true"
 ```
 
 Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates and `2` to also log when nothing has changed.
@@ -42,6 +44,15 @@ The following environment variables are used to configure the domains you would 
 ```
 
 Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. If you use `CF_APITOKEN`, you can leave `CF_USER` and `CF_APIKEY` empty.
+
+## Tags
+
+| Tag      | Description          | Build Status                                                                                                                                                            | Last Updated                                                                                                                                                                    |
+| ---------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| latest   | The same as `stable` |                                                                                                                                                                         |                                                                                                                                                                                 |
+| stable   | Stable version       | [![Build Status](https://cloud.drone.io/api/badges/hotio/docker-cloudflare-ddns/status.svg?ref=refs/heads/stable)](https://cloud.drone.io/hotio/docker-cloudflare-ddns) | [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/hotio/docker-cloudflare-ddns/stable)](https://github.com/hotio/docker-cloudflare-ddns/commits/stable) |
+
+You can also find tags that reference a commit or version number.
 
 ## Zone ID
 
@@ -74,15 +85,6 @@ If you do not prefer to use a `zone_id`, but prefer some more security, you can 
 `Include - All zones`
 
 Leaving `CF_APITOKEN_ZONE` blank would mean that only `CF_APITOKEN` will be used and thus that token should have all required permissions. Which usually means that the token could edit all zones or not be able to fetch the `zone_id` from the `zone_name`.
-
-## Tags
-
-| Tag      | Description          | Build Status                                                                                                                                                            | Last Updated                                                                                                                                                                    |
-| ---------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| latest   | The same as `stable` |                                                                                                                                                                         |                                                                                                                                                                                 |
-| stable   | Stable version       | [![Build Status](https://cloud.drone.io/api/badges/hotio/docker-cloudflare-ddns/status.svg?ref=refs/heads/stable)](https://cloud.drone.io/hotio/docker-cloudflare-ddns) | [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/hotio/docker-cloudflare-ddns/stable)](https://github.com/hotio/docker-cloudflare-ddns/commits/stable) |
-
-You can also find tags that reference a commit or version number.
 
 ## Example of the log output
 
