@@ -142,8 +142,8 @@ while true; do
             if [[ ! -f "$cache" ]]; then
                 zoneid=""
                 dnsrecords=""
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to get DNS records from \"Cloudflare\"..."
                 if [[ ${cfzone[$index]} == *.* ]]; then
+                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to get zone list from \"Cloudflare\"..."
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones") && \
                     zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
                     [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Zone ID returned by \"Cloudflare\" is: $zoneid"
@@ -151,11 +151,13 @@ while true; do
                     zoneid=${cfzone[$index]}
                     [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Zone ID supplied by \"CF_ZONES\" is: $zoneid"
                 fi
-                [[ -n $zoneid ]] && \
+                if [[ -n $zoneid ]]; then
+                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to get DNS records from \"Cloudflare\"..."
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records") && \
                     dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
                     echo "$dnsrecords" > "$cache" && \
                     [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Written DNS records to cache file: $cache"
+                fi
             else
                 [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Reading DNS records from cache file: $cache"
                 dnsrecords=$(cat "$cache")
