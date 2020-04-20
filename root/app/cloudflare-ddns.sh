@@ -111,6 +111,11 @@ while true; do
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
 
+        if [[ -z ${cfzone[$index]} ]] || [[ -z ${cftype[$index]} ]]; then
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - MISCONFIGURATION DETECTED! Missing value for \"CF_ZONES\" or \"CF_RECORDTYPES\"."
+            break
+        fi
+
         cache="/dev/shm/cf-ddns-${cfhost[$index]}-${cftype[$index]}"
 
         case "${cftype[$index]}" in
