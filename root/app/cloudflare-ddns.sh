@@ -9,13 +9,13 @@ echo $$ > /dev/shm/cloudflare-ddns.pid
 
 if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
     if result=$(curl -fsSL -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
-        [[ ${LOG_LEVEL} -gt 0 ]] && echo "Connection to \"${INFLUXDB_HOST}\" succeeded!"
+        [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Connection to \"${INFLUXDB_HOST}\" succeeded!"
         if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "Database \"${INFLUXDB_DB}\" found!"
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Database \"${INFLUXDB_DB}\" found!"
         else
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "Database \"${INFLUXDB_DB}\" not found! Creating database..."
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Database \"${INFLUXDB_DB}\" not found! Creating database..."
             curl -fsSL -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}" > /dev/null
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "Adding sample data..."
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Adding sample data..."
             curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=sample-generator,domain=ipv4.cloudflare.com,recordtype=A ip=\"1.1.1.1\""
             curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=sample-generator,domain=ipv6.cloudflare.com,recordtype=AAAA ip=\"2606:4700:4700::1111\""
         fi
@@ -48,6 +48,7 @@ regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
 while true; do
 
     ## CHECK FOR NEW IP ##
+    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Trying to get IP..."
     case "${DETECTION_MODE}" in
         dig-google.com)
             newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
@@ -86,9 +87,12 @@ while true; do
             newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
     esac
+    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - IPv4 is: $newipv4"
+    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - IPv6 is: $newipv6"
 
     ## LOG CONNECTION STATUS TO INFLUXDB IF ENABLED ##
     if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
+        [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Writing connection status to InfluxDB..."
         if [[ $newipv4 =~ $regexv4 ]]; then
             curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "connection,host=$(hostname),type=ipv4 status=1,ip=\"$newipv4\""
         else
@@ -120,13 +124,13 @@ while true; do
 
         curl_header() {
             if [[ -n $cfapitokenzone ]] && [[ $* != *dns_records* ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Using \"CF_APITOKEN_ZONE=$cfapitokenzone\" to authenticate..."
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Using \"CF_APITOKEN_ZONE\" to authenticate..."
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitokenzone" "$@"
             elif [[ -n $cfapitoken ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Using \"CF_APITOKEN=$cfapitoken\" to authenticate..."
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Using \"CF_APITOKEN\" to authenticate..."
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitoken" "$@"
             else
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Using \"CF_USER=$cfuser, CF_APIKEY=$cfapikey\" to authenticate..."
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Using \"CF_USER & CF_APIKEY\" to authenticate..."
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" "$@"
             fi
         }
@@ -170,7 +174,8 @@ while true; do
                         response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
                         if [[ ${result} == OK ]]; then
                             [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: OK"
-                            [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\""
+                            [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\"" && \
+                            [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Written IP update to InfluxDB."
                             rm "$cache"
                         else
                             [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: FAILED"
@@ -187,6 +192,7 @@ while true; do
     done
 
     ## SLEEP ##
+    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Going to sleep for ${INTERVAL} seconds..."
     sleep "${INTERVAL}"
 
 done
