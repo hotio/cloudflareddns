@@ -132,13 +132,13 @@ while true; do
         curl_header() {
             if [[ -n $cfapitokenzone ]] && [[ $* != *dns_records* ]]; then
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitokenzone" "$@"
-                auth="CF_APITOKEN_ZONE=$cfapitokenzone"
+                #auth="CF_APITOKEN_ZONE=$cfapitokenzone"
             elif [[ -n $cfapitoken ]]; then
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitoken" "$@"
-                auth="CF_APITOKEN=$cfapitoken"
+                #auth="CF_APITOKEN=$cfapitoken"
             else
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" "$@"
-                auth="CF_USER=$cfuser, CF_APIKEY=$cfapikey"
+                #auth="CF_USER=$cfuser, CF_APIKEY=$cfapikey"
             fi
             #[[ ${LOG_LEVEL} -gt 2 ]] && >&2 echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Used \"$auth\" to authenticate."
         }
