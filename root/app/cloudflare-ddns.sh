@@ -9,11 +9,11 @@ echo $$ > /dev/shm/cloudflare-ddns.pid
 
 if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
     if result=$(curl -fsSL -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
-        [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Connection to \"${INFLUXDB_HOST}\" succeeded!"
+        [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Connection to [${INFLUXDB_HOST}] succeeded!"
         if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Database \"${INFLUXDB_DB}\" found!"
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Database [${INFLUXDB_DB}] found!"
         else
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Database \"${INFLUXDB_DB}\" not found! Creating database..."
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Database [${INFLUXDB_DB}] not found! Creating database..."
             curl -fsSL -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}" > /dev/null
             [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Adding sample data..."
             curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=sample-generator,domain=ipv4.cloudflare.com,recordtype=A ip=\"1.1.1.1\""
@@ -112,7 +112,7 @@ while true; do
     for index in ${!cfhost[*]}; do
 
         if [[ -z ${cfzone[$index]} ]] || [[ -z ${cftype[$index]} ]]; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - MISCONFIGURATION DETECTED! Missing value for \"CF_ZONES\" or \"CF_RECORDTYPES\"."
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - MISCONFIGURATION DETECTED! Missing value for [CF_ZONES] or [CF_RECORDTYPES]."
             break
         fi
 
@@ -132,41 +132,55 @@ while true; do
         curl_header() {
             if [[ -n $cfapitokenzone ]] && [[ $* != *dns_records* ]]; then
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitokenzone" "$@"
-                #auth="CF_APITOKEN_ZONE=$cfapitokenzone"
             elif [[ -n $cfapitoken ]]; then
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitoken" "$@"
-                #auth="CF_APITOKEN=$cfapitoken"
             else
                 curl -fsSL -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" "$@"
-                #auth="CF_USER=$cfuser, CF_APIKEY=$cfapikey"
             fi
-            #[[ ${LOG_LEVEL} -gt 2 ]] && >&2 echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Used \"$auth\" to authenticate."
+        }
+        auth_log() {
+            if [[ -n $cfapitokenzone ]] && [[ $* != *DNS* ]]; then
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN_ZONE=$cfapitokenzone] to authenticate..."
+            elif [[ -n $cfapitoken ]]; then
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN=$cfapitoken] to authenticate..."
+            else
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_USER=$cfuser & CF_APIKEY=$cfapikey] to authenticate..."
+            fi
+        }
+        debug_log() {
+            [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
+        }
+        verbose_log() {
+            [[ ${LOG_LEVEL} -gt 1 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
+        }
+        log() {
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
         }
 
         if ! [[ $newip =~ $regex ]]; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"${DETECTION_MODE}\" is not valid! Check your connection."
+            log "Returned IP by [${DETECTION_MODE}] is not valid! Check your connection."
         else
             if [[ ! -f "$cache" ]]; then
                 zoneid=""
                 dnsrecords=""
                 if [[ ${cfzone[$index]} == *.* ]]; then
-                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to get zone list from \"Cloudflare\"..."
+                    auth_log "Reading zone list from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones") && \
                     zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
-                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Zone ID returned by \"Cloudflare\" is: $zoneid"
+                    debug_log "Zone ID returned by [Cloudflare] is: $zoneid"
                 else
                     zoneid=${cfzone[$index]}
-                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Zone ID supplied by \"CF_ZONES\" is: $zoneid"
+                    debug_log "Zone ID supplied by [CF_ZONES] is: $zoneid"
                 fi
                 if [[ -n $zoneid ]]; then
-                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to get DNS records from \"Cloudflare\"..."
+                    auth_log "Reading DNS records from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records") && \
                     dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
                     echo "$dnsrecords" > "$cache" && \
-                    [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Wrote DNS records to cache file: $cache"
+                    debug_log "Wrote DNS records to cache file: $cache"
                 fi
             else
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Reading DNS records from cache file: $cache"
+                debug_log "Reading DNS records from cache file: $cache"
                 dnsrecords=$(cat "$cache")
             fi
             if [[ -n ${dnsrecords} ]]; then
@@ -176,26 +190,27 @@ while true; do
                 ttl=$(echo "$dnsrecords" | jq -r '.ttl' | head -1)
                 ip=$(echo "$dnsrecords" | jq -r '.content' | head -1)
                 if ! [[ $ip =~ $regex ]]; then
-                    [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Returned IP by \"Cloudflare\" is not valid! Check your connection or configuration."
+                    log "Returned IP by [Cloudflare] is not valid! Check your connection or configuration."
                 else
                     if [[ "$ip" != "$newip" ]]; then
-                        [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Trying to update DNS record..."
+                        auth_log "Updating DNS record"
                         result=NOK
                         response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}') && result=OK
                         if [[ ${result} == OK ]]; then
-                            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: OK"
+                            log "Updating IP [$ip] to [$newip]: OK"
                             [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\"" && \
-                            [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Wrote IP update to InfluxDB."
-                            rm "$cache" && [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Deleted cache file: $cache"
+                            debug_log "Wrote IP update to InfluxDB."
+                            rm "$cache" && \
+                            debug_log "Deleted cache file: $cache"
                         else
-                            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: FAILED"
+                            log "Updating IP [$ip] to [$newip]: FAILED"
                         fi
                     else
-                        [[ ${LOG_LEVEL} -gt 1 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Updating IP [$ip] to [$newip]: NO CHANGE"
+                        verbose_log "Updating IP [$ip] to [$newip]: NO CHANGE"
                     fi
                 fi
             else
-                [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] - Couldn't fetch DNS records from \"Cloudflare\"! Check your connection or configuration."
+                log "Couldn't fetch DNS records from [Cloudflare]! Check your connection or configuration."
             fi
         fi
 
