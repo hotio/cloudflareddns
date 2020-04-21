@@ -166,10 +166,10 @@ while true; do
                 if [[ ${cfzone[$index]} == *.* ]]; then
                     auth_log "Reading zone list from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones") && \
-                    zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
+                    zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id') && \
                     debug_log "Zone ID returned by [Cloudflare] is: $zoneid"
                 else
-                    zoneid=${cfzone[$index]}
+                    zoneid=${cfzone[$index]} && \
                     debug_log "Zone ID supplied by [CF_ZONES] is: $zoneid"
                 fi
                 if [[ -n $zoneid ]]; then
@@ -180,8 +180,8 @@ while true; do
                     debug_log "Wrote DNS records to cache file: $cache"
                 fi
             else
-                debug_log "Reading DNS records from cache file: $cache"
-                dnsrecords=$(cat "$cache")
+                dnsrecords=$(cat "$cache") && \
+                debug_log "Read back DNS records from cache file: $cache"
             fi
             if [[ -n ${dnsrecords} ]]; then
                 zoneid=$(echo "$dnsrecords" | jq -r '.zone_id' | head -1)
@@ -210,7 +210,7 @@ while true; do
                     fi
                 fi
             else
-                log "Couldn't fetch DNS records from [Cloudflare]! Check your connection or configuration."
+                log "Reading DNS records failed!"
             fi
         fi
 
