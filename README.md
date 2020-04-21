@@ -45,6 +45,8 @@ The following environment variables are used to configure the domains you would 
 
 Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. If you use `CF_APITOKEN`, you can leave `CF_USER` and `CF_APIKEY` empty.
 
+> IMPORTANT: All the domain names in `CF_HOSTS` should have properly configured DNS records on Cloudflare, they will not be created.
+
 ## Tags
 
 | Tag      | Description          | Build Status                                                                                                                                                            | Last Updated                                                                                                                                                                    |
