@@ -4,4 +4,4 @@
 umask "${UMASK}"
 
 # shellcheck disable=SC2086
-exec s6-setuidgid hotio "${APP_DIR}/cloudflare-ddns.sh" ${ARGS}
+exec s6-setuidgid hotio "${APP_DIR}/cloudflare-ddns.sh" "${CONFIG_DIR}/app" ${ARGS}

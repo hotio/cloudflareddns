@@ -1,8 +1,6 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-echo $$ > /dev/shm/cloudflare-ddns.pid
-
 ###################################
 ## CREATE INFLUXDB DB IF ENABLED ##
 ###################################
@@ -40,6 +38,14 @@ IFS="${DEFAULTIFS}"
 
 regexv4='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
 regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
+
+if [[ -z $1 ]]; then
+    cache_location="/dev/shm"
+else
+    cache_location="$1"
+fi
+
+rm -f "${cache_location}"/*.cache
 
 #################
 ## UPDATE LOOP ##
@@ -116,7 +122,7 @@ while true; do
             break
         fi
 
-        cache="/dev/shm/cf-ddns-${cfhost[$index]}-${cftype[$index]}.cache"
+        cache="${cache_location}/cf-ddns-${cfhost[$index]}-${cftype[$index]}.cache"
 
         case "${cftype[$index]}" in
             A)
