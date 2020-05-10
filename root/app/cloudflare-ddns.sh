@@ -1,6 +1,11 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
 ###################################
 ## CREATE INFLUXDB DB IF ENABLED ##
 ###################################
@@ -118,7 +123,7 @@ while true; do
     for index in ${!cfhost[*]}; do
 
         if [[ -z ${cfzone[$index]} ]] || [[ -z ${cftype[$index]} ]]; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - MISCONFIGURATION DETECTED! Missing value for [CF_ZONES] or [CF_RECORDTYPES]."
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - ${RED}MISCONFIGURATION DETECTED! Missing value for [CF_ZONES] or [CF_RECORDTYPES].${NC}"
             break
         fi
 
@@ -160,14 +165,14 @@ while true; do
             [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
         }
         verbose_log() {
-            [[ ${LOG_LEVEL} -gt 1 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
+            [[ ${LOG_LEVEL} -gt 1 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
         }
         log() {
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
         }
 
         if ! [[ $newip =~ $regex ]]; then
-            log "Returned IP by [${DETECTION_MODE}] is not valid! Check your connection."
+            log "${RED}Returned IP by [${DETECTION_MODE}] is not valid! Check your connection.${NC}"
         else
             if [[ ! -f "$cache" ]]; then
                 zoneid=""
@@ -176,35 +181,37 @@ while true; do
                     auth_log "Reading zone list from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
-                        log "Error response from [Cloudflare]:"
-                        [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
+                        log "${RED}Error response from [Cloudflare]:${NC}" && [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
                     else
-                        verbose_debug_log "Response from [Cloudflare]:"
-                        [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
-                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id') && \
-                        debug_log "Zone ID returned by [Cloudflare] is: $zoneid"
+                        debug_log "Retrieved zone list from [Cloudflare]"
+                        verbose_debug_log "Response from [Cloudflare]:" && [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
+                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
+                        if [[ -n ${zoneid} ]]; then
+                            debug_log "Zone ID returned by [Cloudflare] is: $zoneid"
+                        else
+                            log "${RED}Something went wrong trying to find the Zone ID of [${cfzone[$index]}] in the zone list!${NC}"
+                        fi
                     fi
                 else
-                    zoneid=${cfzone[$index]} && \
-                    debug_log "Zone ID supplied by [CF_ZONES] is: $zoneid"
+                    zoneid=${cfzone[$index]} && debug_log "Zone ID supplied by [CF_ZONES] is: $zoneid"
                 fi
                 if [[ -n $zoneid ]]; then
                     auth_log "Reading DNS records from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
-                        log "Error response from [Cloudflare]:"
-                        [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
+                        log "${RED}Error response from [Cloudflare]:${NC}" && [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
                     else
-                        verbose_debug_log "Response from [Cloudflare]:"
-                        [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
-                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")') && \
-                        echo "$dnsrecords" > "$cache" && \
-                        debug_log "Wrote DNS records to cache file: $cache"
+                        verbose_debug_log "Response from [Cloudflare]:" && [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
+                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")')
+                        if [[ -n ${dnsrecords} ]]; then
+                            echo "$dnsrecords" > "$cache" && debug_log "Wrote DNS records to cache file: $cache"
+                        else
+                            log "${RED}Something went wrong trying to find [${cfhost[$index]}] in the DNS records returned by [Cloudflare]!${NC}"
+                        fi
                     fi
                 fi
             else
-                dnsrecords=$(cat "$cache") && \
-                debug_log "Read back DNS records from cache file: $cache"
+                dnsrecords=$(cat "$cache") && debug_log "Read back DNS records from cache file: $cache"
             fi
             if [[ -n ${dnsrecords} ]]; then
                 zoneid=$(echo "$dnsrecords" | jq -r '.zone_id' | head -1)
@@ -213,29 +220,25 @@ while true; do
                 ttl=$(echo "$dnsrecords" | jq -r '.ttl' | head -1)
                 ip=$(echo "$dnsrecords" | jq -r '.content' | head -1)
                 if ! [[ $ip =~ $regex ]]; then
-                    log "Returned IP by [Cloudflare] is not valid! Check your connection or configuration."
+                    log "${RED}Returned IP by [Cloudflare] failed the regex!${NC}"
                 else
                     if [[ "$ip" != "$newip" ]]; then
                         auth_log "Updating DNS record"
                         response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}')
                         if [[ $(echo "${response}" | jq -r .success) == false ]]; then
-                            log "Error response from [Cloudflare]:"
-                            [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
+                            log "${RED}Error response from [Cloudflare]:${NC}" && [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
                         else
-                            verbose_debug_log "Response from [Cloudflare]:"
-                            [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
-                            log "Updating IP [$ip] to [$newip]: OK"
-                            [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\"" && \
-                            debug_log "Wrote IP update to InfluxDB."
-                            rm "$cache" && \
-                            debug_log "Deleted cache file: $cache"
+                            log "Updating IP [$ip] to [$newip]: ${GREEN}OK${NC}"
+                            verbose_debug_log "Response from [Cloudflare]:" && [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
+                            [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\"" && debug_log "Wrote IP update to InfluxDB."
+                            rm "$cache" && debug_log "Deleted cache file: $cache"
                         fi
                     else
-                        verbose_log "Updating IP [$ip] to [$newip]: NO CHANGE"
+                        verbose_log "Updating IP [$ip] to [$newip]: ${YELLOW}NO CHANGE${NC}"
                     fi
                 fi
             else
-                log "Reading DNS records failed!"
+                log "${RED}Getting DNS records failed! No attempt was made to update anything.${NC}"
             fi
         fi
 
