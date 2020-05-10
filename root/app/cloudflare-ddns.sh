@@ -123,7 +123,7 @@ while true; do
     for index in ${!cfhost[*]}; do
 
         if [[ -z ${cfzone[$index]} ]] || [[ -z ${cftype[$index]} ]]; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - ${RED}MISCONFIGURATION DETECTED! Missing value for [CF_ZONES] or [CF_RECORDTYPES].${NC}"
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - ${RED}MISCONFIGURATION DETECTED! Missing value for [CF_ZONES] or [CF_RECORDTYPES].${NC}"
             break
         fi
 
