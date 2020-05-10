@@ -177,7 +177,7 @@ while true; do
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         log "Error response from [Cloudflare]:"
-                        echo "${response}" | jq
+                        [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
                     else
                         verbose_debug_log "Response from [Cloudflare]:"
                         [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
@@ -193,7 +193,7 @@ while true; do
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         log "Error response from [Cloudflare]:"
-                        echo "${response}" | jq
+                        [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
                     else
                         verbose_debug_log "Response from [Cloudflare]:"
                         [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
@@ -220,7 +220,7 @@ while true; do
                         response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}')
                         if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                             log "Error response from [Cloudflare]:"
-                            echo "${response}" | jq
+                            [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
                         else
                             verbose_debug_log "Response from [Cloudflare]:"
                             [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
