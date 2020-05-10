@@ -29,7 +29,7 @@ The environment variables below are all optional, the values you see are the def
 -e CHECK_IPV6="true"
 ```
 
-Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates, `2` to also log when nothing has changed and `3` to get debug logging.
+Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates, `2` to also log when nothing has changed, `3` to get debug logging and `4` to get very verbose debug logs.
 
 The following environment variables are used to configure the domains you would like to update.
 
