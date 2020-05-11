@@ -7,6 +7,12 @@ GREEN='\e[32m'
 YELLOW='\e[33m'
 NC='\e[0m'
 
+CHECK_IPV4="${CHECK_IPV4:-true}"
+CHECK_IPV6="${CHECK_IPV6:-true}"
+INTERVAL="${INTERVAL:-300}"
+DETECTION_MODE="${DETECTION_MODE:-dig-whoami.cloudflare}"
+LOG_LEVEL="${LOG_LEVEL:-3}"
+
 ###################################
 ## CREATE INFLUXDB DB IF ENABLED ##
 ###################################
@@ -29,17 +35,6 @@ fi
 ###################
 ## CONFIGURATION ##
 ###################
-
-CHECK_IPV4="${CHECK_IPV4:-true}"
-CHECK_IPV6="${CHECK_IPV6:-true}"
-INTERVAL="${INTERVAL:-300}"
-DETECTION_MODE="${DETECTION_MODE:-dig-whoami.cloudflare}"
-LOG_LEVEL="${LOG_LEVEL:-3}"
-
-cfuser="${CF_USER}"
-cfapikey="${CF_APIKEY}"
-cfapitoken="${CF_APITOKEN}"
-cfapitokenzone="${CF_APITOKEN_ZONE}"
 
 DEFAULTIFS="${IFS}"
 IFS=';'
@@ -148,21 +143,21 @@ while true; do
         esac
 
         curl_header() {
-            if [[ -n $cfapitokenzone ]] && [[ $* != *dns_records* ]]; then
-                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitokenzone" "$@"
-            elif [[ -n $cfapitoken ]]; then
-                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $cfapitoken" "$@"
+            if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *dns_records* ]]; then
+                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN_ZONE}" "$@"
+            elif [[ -n ${CF_APITOKEN} ]]; then
+                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
             else
-                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: $cfuser" -H "X-Auth-Key: $cfapikey" "$@"
+                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
             fi
         }
         auth_log() {
-            if [[ -n $cfapitokenzone ]] && [[ $* != *DNS* ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN_ZONE=$cfapitokenzone] to authenticate..."
-            elif [[ -n $cfapitoken ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN=$cfapitoken] to authenticate..."
+            if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *DNS* ]]; then
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN_ZONE=${CF_APITOKEN_ZONE}] to authenticate..."
+            elif [[ -n ${CF_APITOKEN} ]]; then
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN=${CF_APITOKEN}] to authenticate..."
             else
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_USER=$cfuser & CF_APIKEY=$cfapikey] to authenticate..."
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_USER=${CF_USER} & CF_APIKEY=${CF_APIKEY}] to authenticate..."
             fi
         }
         verbose_debug_log() {
