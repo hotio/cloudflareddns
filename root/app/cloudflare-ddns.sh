@@ -166,10 +166,10 @@ while true; do
             fi
         }
         verbose_debug_log() {
-            [[ ${LOG_LEVEL} -gt 3 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
+            [[ ${LOG_LEVEL} -gt 3 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
         }
         debug_log() {
-            [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
+            [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
         }
         verbose_log() {
             [[ ${LOG_LEVEL} -gt 1 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
@@ -194,10 +194,10 @@ while true; do
                     auth_log "Reading zone list from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
-                        log "${RED}Error response from [Cloudflare]:${NC}" && [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
+                        log "${RED}Error response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                     else
                         debug_log "Retrieved zone list from [Cloudflare]"
-                        verbose_debug_log "Response from [Cloudflare]:" && [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
+                        verbose_debug_log "${YELLOW}Response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                         zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
                         if [[ -n ${zoneid} ]]; then
                             debug_log "Zone ID returned by [Cloudflare] for zone [${cfzone[$index]}] is: $zoneid"
@@ -214,9 +214,9 @@ while true; do
                     auth_log "Reading DNS records from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
-                        log "${RED}Error response from [Cloudflare]:${NC}" && [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
+                        log "${RED}Error response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                     else
-                        verbose_debug_log "Response from [Cloudflare]:" && [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
+                        verbose_debug_log "${YELLOW}Response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                         dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")')
                         if [[ -n ${dnsrecords} ]]; then
                             echo "$dnsrecords" > "$cache" && debug_log "Wrote DNS records to cache file: $cache"
@@ -246,10 +246,10 @@ while true; do
                     auth_log "Updating DNS record"
                     response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}')
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
-                        log "${RED}Error response from [Cloudflare]:${NC}" && [[ ${LOG_LEVEL} -gt 0 ]] && echo "${response}" | jq
+                        log "${RED}Error response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                     else
                         log "Updating IP [$ip] to [$newip]: ${GREEN}OK${NC}"
-                        verbose_debug_log "Response from [Cloudflare]:" && [[ ${LOG_LEVEL} -gt 3 ]] && echo "${response}" | jq
+                        verbose_debug_log "${YELLOW}Response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                         [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\"" && debug_log "Wrote IP update to InfluxDB."
                         rm "$cache" && debug_log "Deleted cache file: $cache"
                     fi
