@@ -29,6 +29,12 @@ fi
 ## CONFIGURATION ##
 ###################
 
+CHECK_IPV4="${CHECK_IPV4:-true}"
+CHECK_IPV6="${CHECK_IPV6:-true}"
+INTERVAL="${INTERVAL:-300}"
+DETECTION_MODE="${DETECTION_MODE:-dig-whoami.cloudflare}"
+LOG_LEVEL="${LOG_LEVEL:-3}"
+
 cfuser="${CF_USER}"
 cfapikey="${CF_APIKEY}"
 cfapitoken="${CF_APITOKEN}"
