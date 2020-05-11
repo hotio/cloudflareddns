@@ -3,6 +3,7 @@
 
 RED='\e[31m'
 BRED='\e[41m'
+BMAGENTA='\e[45m'
 GREEN='\e[32m'
 YELLOW='\e[33m'
 NC='\e[0m'
@@ -153,11 +154,11 @@ while true; do
         }
         auth_log() {
             if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *DNS* ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN_ZONE=${CF_APITOKEN_ZONE}] to authenticate..."
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN_ZONE=${BMAGENTA}${CF_APITOKEN_ZONE}${NC}] to authenticate..."
             elif [[ -n ${CF_APITOKEN} ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN=${CF_APITOKEN}] to authenticate..."
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN=${BMAGENTA}${CF_APITOKEN}${NC}] to authenticate..."
             else
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_USER=${CF_USER} & CF_APIKEY=${CF_APIKEY}] to authenticate..."
+                [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_USER=${BMAGENTA}${CF_USER}${NC} & CF_APIKEY=${BMAGENTA}${CF_APIKEY}${NC}] to authenticate..."
             fi
         }
         verbose_debug_log() {
