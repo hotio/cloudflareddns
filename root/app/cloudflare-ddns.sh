@@ -1,10 +1,11 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
+RED='\e[31m'
+BRED='\e[41m'
+GREEN='\e[32m'
+YELLOW='\e[33m'
+NC='\e[0m'
 
 ###################################
 ## CREATE INFLUXDB DB IF ENABLED ##
@@ -129,7 +130,7 @@ while true; do
     for index in ${!cfhost[*]}; do
 
         if [[ -z ${cfzone[$index]} ]] || [[ -z ${cftype[$index]} ]]; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - ${RED}MISCONFIGURATION DETECTED! Missing value for [CF_ZONES] or [CF_RECORDTYPES].${NC}"
+            [[ ${LOG_LEVEL} -gt 0 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - ${BRED}${YELLOW}MISCONFIGURATION DETECTED! Missing value(s) for [CF_ZONES] and/or [CF_RECORDTYPES], make sure you use the same amount of values for [CF_HOSTS], [CF_ZONES] and [CF_RECORDTYPES].${NC}"
             break
         fi
 
