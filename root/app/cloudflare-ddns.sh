@@ -214,7 +214,7 @@ while true; do
                         verbose_debug_log "${YELLOW}Response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                         dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")')
                         if [[ -n ${dnsrecords} ]]; then
-                            echo "$dnsrecords" > "$cache" && debug_log "Wrote DNS records to cache file: $cache"
+                            echo "$dnsrecords" > "$cache" && debug_log "Wrote DNS records to cache file: $cache" && verbose_debug_log "${YELLOW}Data written to cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
                         else
                             log "${RED}Something went wrong trying to find [${cfhost[$index]} - ${cftype[$index]}] in the DNS records returned by [Cloudflare]!${NC}"
                         fi
@@ -222,7 +222,7 @@ while true; do
                 fi
 
             else
-                dnsrecords=$(cat "$cache") && debug_log "Read back DNS records from cache file: $cache"
+                dnsrecords=$(cat "$cache") && debug_log "Read back DNS records from cache file: $cache" && verbose_debug_log "${YELLOW}Data read from cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
             fi
             ##################################################
 
