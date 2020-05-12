@@ -23,10 +23,10 @@ The environment variables below are all optional, the values you see are the def
 -e TZ="Etc/UTC"
 -e ARGS=""
 -e INTERVAL=300
--e DETECTION_MODE="dig-google.com"
+-e DETECTION_MODE="dig-whoami.cloudflare"
 -e LOG_LEVEL=3
 -e CHECK_IPV4="true"
--e CHECK_IPV6="true"
+-e CHECK_IPV6="false"
 ```
 
 Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates, `2` to also log when nothing has changed, `3` to get debug logging and `4` to get very verbose debug logs.
@@ -38,12 +38,12 @@ The following environment variables are used to configure the domains you would 
 -e CF_APIKEY="your.global.apikey"
 -e CF_APITOKEN=""
 -e CF_APITOKEN_ZONE=""
--e CF_ZONES="example.com;foobar.com;foobar.com"
 -e CF_HOSTS="test.example.com;test.foobar.com;test2.foobar.com"
+-e CF_ZONES="example.com;foobar.com;foobar.com"
 -e CF_RECORDTYPES="A;A;AAAA"
 ```
 
-Notice that we give 3 values each time for `CF_ZONES`, `CF_HOSTS` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. If you use `CF_APITOKEN`, you can leave `CF_USER` and `CF_APIKEY` empty.
+Notice that we give 3 values each time for `CF_HOSTS`, `CF_ZONES` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. If you use `CF_APITOKEN`, you can leave `CF_USER` and `CF_APIKEY` empty.
 
 > IMPORTANT: All the domain names in `CF_HOSTS` should have properly configured DNS records on Cloudflare, they will not be created.
 
@@ -62,8 +62,8 @@ Instead of the `zone_name`, you can also fill in a `zone_id` in `CF_ZONES`. When
 
 ```shell
 -e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
--e CF_ZONES="zbpsi9ceikrdnnym27s2xnp6s5dvj6ep;dccbe6grakumohwwd4amh4o46yupepn8"
 -e CF_HOSTS="example.com;test.foobar.com"
+-e CF_ZONES="zbpsi9ceikrdnnym27s2xnp6s5dvj6ep;dccbe6grakumohwwd4amh4o46yupepn8"
 -e CF_RECORDTYPES="A;A"
 ```
 
@@ -96,8 +96,8 @@ Below are some example configuration combinations, ordered from most secure to l
 
 ```shell
 -e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
--e CF_ZONES="zbpsi9ceikrdnnym27s2xnp6s5dvj6ep;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_ZONES="zbpsi9ceikrdnnym27s2xnp6s5dvj6ep;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_RECORDTYPES="A;A"
 ```
 
@@ -106,8 +106,8 @@ Below are some example configuration combinations, ordered from most secure to l
 ```shell
 -e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
 -e CF_APITOKEN_ZONE="8m4TxzWb9QHXEpTwQDMugkKuHRavsxoK8qmJ4P7M"
--e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_RECORDTYPES="A;A"
 ```
 
@@ -115,8 +115,8 @@ Below are some example configuration combinations, ordered from most secure to l
 
 ```shell
 -e CF_APITOKEN="azkqvJ86wEScojvSJC8DyY67TwqNwZCtomEVrHwt"
--e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_RECORDTYPES="A;A"
 ```
 
@@ -125,8 +125,8 @@ Below are some example configuration combinations, ordered from most secure to l
 ```shell
 -e CF_USER="your.cf.email@example.com"
 -e CF_APIKEY="your.global.apikey"
--e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_HOSTS="vpn.example.com;test.foobar.com"
+-e CF_ZONES="example.com;axozor886pyja7nmbcvu5kh7dp9557j4"
 -e CF_RECORDTYPES="A;A"
 ```
 
