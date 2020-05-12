@@ -53,7 +53,7 @@ regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
 
 # SET DEFAULTS
 CHECK_IPV4="${CHECK_IPV4:-true}"
-CHECK_IPV6="${CHECK_IPV6:-true}"
+CHECK_IPV6="${CHECK_IPV6:-false}"
 INTERVAL="${INTERVAL:-300}"
 DETECTION_MODE="${DETECTION_MODE:-dig-whoami.cloudflare}"
 LOG_LEVEL="${LOG_LEVEL:-3}"
