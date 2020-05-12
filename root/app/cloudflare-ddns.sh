@@ -1,18 +1,81 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+###############
+## FUNCTIONS ##
+###############
+
+curl_header() {
+    if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *dns_records* ]]; then
+        curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN_ZONE}" "$@"
+    elif [[ -n ${CF_APITOKEN} ]]; then
+        curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
+    else
+        curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
+    fi
+}
+auth_log() {
+    if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *DNS* ]]; then
+        [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] -" "$@" "- Using [CF_APITOKEN_ZONE=${BMAGENTA}${CF_APITOKEN_ZONE}${NC}] to authenticate..."
+    elif [[ -n ${CF_APITOKEN} ]]; then
+        [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] -" "$@" "- Using [CF_APITOKEN=${BMAGENTA}${CF_APITOKEN}${NC}] to authenticate..."
+    else
+        [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] -" "$@" "- Using [CF_USER=${BMAGENTA}${CF_USER}${NC} & CF_APIKEY=${BMAGENTA}${CF_APIKEY}${NC}] to authenticate..."
+    fi
+}
+verbose_debug_log() {
+    [[ ${LOG_LEVEL} -gt 3 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] -" "$@"
+}
+debug_log() {
+    [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] -" "$@"
+}
+verbose_log() {
+    [[ ${LOG_LEVEL} -gt 1 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] -" "$@"
+}
+log() {
+    [[ ${LOG_LEVEL} -gt 0 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] -" "$@"
+}
+
+#############
+## STARTUP ##
+#############
+
+# SET COLORS
 RED='\e[31m'
-BRED='\e[41m'
 BMAGENTA='\e[45m'
 GREEN='\e[32m'
 YELLOW='\e[33m'
 NC='\e[0m'
 
+# SET REGEX
+regexv4='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
+
+# SET DEFAULTS
 CHECK_IPV4="${CHECK_IPV4:-true}"
 CHECK_IPV6="${CHECK_IPV6:-true}"
 INTERVAL="${INTERVAL:-300}"
 DETECTION_MODE="${DETECTION_MODE:-dig-whoami.cloudflare}"
 LOG_LEVEL="${LOG_LEVEL:-3}"
+INFLUXDB_ENABLED="${INFLUXDB_ENABLED:-false}"
+INFLUXDB_HOST="${INFLUXDB_HOST:-http://127.0.0.1:8086}"
+INFLUXDB_DB="${INFLUXDB_DB:-cloudflare_ddns}"
+
+# READ IN VALUES
+DEFAULTIFS="${IFS}"
+IFS=';'
+read -r -a cfhost <<< "${CF_HOSTS}"
+read -r -a cfzone <<< "${CF_ZONES}"
+read -r -a cftype <<< "${CF_RECORDTYPES}"
+IFS="${DEFAULTIFS}"
+
+# SETUP CACHE
+if [[ -z $1 ]]; then
+    cache_location="/dev/shm"
+else
+    cache_location="$1"
+fi
+rm -f "${cache_location}"/*.cache
 
 ###################################
 ## CREATE INFLUXDB DB IF ENABLED ##
@@ -32,28 +95,6 @@ if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
         fi
     fi
 fi
-
-###################
-## CONFIGURATION ##
-###################
-
-DEFAULTIFS="${IFS}"
-IFS=';'
-read -r -a cfzone <<< "${CF_ZONES}"
-read -r -a cfhost <<< "${CF_HOSTS}"
-read -r -a cftype <<< "${CF_RECORDTYPES}"
-IFS="${DEFAULTIFS}"
-
-regexv4='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
-regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
-
-if [[ -z $1 ]]; then
-    cache_location="/dev/shm"
-else
-    cache_location="$1"
-fi
-
-rm -f "${cache_location}"/*.cache
 
 #################
 ## UPDATE LOOP ##
@@ -125,14 +166,20 @@ while true; do
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
 
-        if [[ -z ${cfzone[$index]} ]] || [[ -z ${cftype[$index]} ]]; then
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - ${BRED}${YELLOW}MISCONFIGURATION DETECTED! Missing value(s) for [CF_ZONES] and/or [CF_RECORDTYPES], make sure you use the same amount of values for [CF_HOSTS], [CF_ZONES] and [CF_RECORDTYPES].${NC}"
-            break
+        host=${cfhost[$index]}
+
+        if [[ -n ${cftype[$index]} ]]; then
+            type=${cftype[$index]}
+        elif [[ -z ${type} ]]; then
+            type="A"
+            log "${YELLOW}No value was found in [CF_RECORDTYPES] for host [${host}], also no previous value was found, the default [A] is used instead.${NC}"
+        else
+            log "${YELLOW}No value was found in [CF_RECORDTYPES] for host [${host}], the previous value [${type}] is used instead.${NC}"
         fi
 
-        cache="${cache_location}/cf-ddns-${cfhost[$index]}-${cftype[$index]}.cache"
+        cache="${cache_location}/cf-ddns-${host}-${type}.cache"
 
-        case "${cftype[$index]}" in
+        case "${type}" in
             A)
                 regex="${regexv4}"
                 newip="${newipv4}"
@@ -143,40 +190,17 @@ while true; do
                 ;;
         esac
 
-        curl_header() {
-            if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *dns_records* ]]; then
-                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN_ZONE}" "$@"
-            elif [[ -n ${CF_APITOKEN} ]]; then
-                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
-            else
-                curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
-            fi
-        }
-        auth_log() {
-            if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *DNS* ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN_ZONE=${BMAGENTA}${CF_APITOKEN_ZONE}${NC}] to authenticate..."
-            elif [[ -n ${CF_APITOKEN} ]]; then
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_APITOKEN=${BMAGENTA}${CF_APITOKEN}${NC}] to authenticate..."
-            else
-                [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@" "- Using [CF_USER=${BMAGENTA}${CF_USER}${NC} & CF_APIKEY=${BMAGENTA}${CF_APIKEY}${NC}] to authenticate..."
-            fi
-        }
-        verbose_debug_log() {
-            [[ ${LOG_LEVEL} -gt 3 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
-        }
-        debug_log() {
-            [[ ${LOG_LEVEL} -gt 2 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
-        }
-        verbose_log() {
-            [[ ${LOG_LEVEL} -gt 1 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
-        }
-        log() {
-            [[ ${LOG_LEVEL} -gt 0 ]] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${cfhost[$index]}] - [${cftype[$index]}] -" "$@"
-        }
-
         if ! [[ $newip =~ $regex ]]; then
-            log "${RED}Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${cftype[$index]}] record! Check your connection.${NC}"
+            log "${RED}Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection.${NC}"
         else
+
+            if [[ -n ${cfzone[$index]} ]]; then
+                zone=${cfzone[$index]}
+            elif [[ -z ${zone} ]]; then
+                log "${RED}No value was found in [CF_ZONES] for host [${host}], also no previous value was found, can't do anything until you fix this!${NC}"
+            else
+                log "${YELLOW}No value was found in [CF_ZONES] for host [${host}], the previous value [${zone}] is used instead.${NC}"
+            fi
 
             ##################################################
             ## Try getting the DNS records                  ##
@@ -186,7 +210,7 @@ while true; do
                 ## Try getting the Zone ID ##
                 zoneid=""
                 dnsrecords=""
-                if [[ ${cfzone[$index]} == *.* ]]; then
+                if [[ ${zone} == *.* ]]; then
                     auth_log "Reading zone list from [Cloudflare]"
                     response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
@@ -194,15 +218,15 @@ while true; do
                     else
                         debug_log "Retrieved zone list from [Cloudflare]"
                         verbose_debug_log "${YELLOW}Response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
-                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${cfzone[$index]}"'") | .id')
+                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${zone}"'") | .id')
                         if [[ -n ${zoneid} ]]; then
-                            debug_log "Zone ID returned by [Cloudflare] for zone [${cfzone[$index]}] is: $zoneid"
+                            debug_log "Zone ID returned by [Cloudflare] for zone [${zone}] is: $zoneid"
                         else
-                            log "${RED}Something went wrong trying to find the Zone ID of [${cfzone[$index]}] in the zone list!${NC}"
+                            log "${RED}Something went wrong trying to find the Zone ID of [${zone}] in the zone list!${NC}"
                         fi
                     fi
-                else
-                    zoneid=${cfzone[$index]} && debug_log "Zone ID supplied by [CF_ZONES] is: $zoneid"
+                elif [[ -n ${zone} ]]; then
+                    zoneid=${zone} && debug_log "Zone ID supplied by [CF_ZONES] is: $zoneid"
                 fi
 
                 ## Try getting the DNS records from Cloudflare ##
@@ -213,11 +237,11 @@ while true; do
                         log "${RED}Error response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                     else
                         verbose_debug_log "${YELLOW}Response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
-                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${cfhost[$index]}"'") | select (.type == "'"${cftype[$index]}"'")')
+                        dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${host}"'") | select (.type == "'"${type}"'")')
                         if [[ -n ${dnsrecords} ]]; then
                             echo "$dnsrecords" > "$cache" && debug_log "Wrote DNS records to cache file: $cache" && verbose_debug_log "${YELLOW}Data written to cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
                         else
-                            log "${RED}Something went wrong trying to find [${cfhost[$index]} - ${cftype[$index]}] in the DNS records returned by [Cloudflare]!${NC}"
+                            log "${RED}Something went wrong trying to find [${host} - ${type}] in the DNS records returned by [Cloudflare]!${NC}"
                         fi
                     fi
                 fi
@@ -240,13 +264,13 @@ while true; do
 
                 if [[ "$ip" != "$newip" ]]; then
                     auth_log "Updating DNS record"
-                    response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${cftype[$index]}"'","name":"'"${cfhost[$index]}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}')
+                    response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}')
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         log "${RED}Error response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
                     else
                         log "Updating IP [$ip] to [$newip]: ${GREEN}OK${NC}"
                         verbose_debug_log "${YELLOW}Response from [Cloudflare]:\n$(echo "${response}" | jq .)${NC}"
-                        [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${cfhost[$index]},recordtype=${cftype[$index]} ip=\"$newip\"" && debug_log "Wrote IP update to InfluxDB."
+                        [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${host},recordtype=${type} ip=\"$newip\"" && debug_log "Wrote IP update to InfluxDB."
                         rm "$cache" && debug_log "Deleted cache file: $cache"
                     fi
                 else
@@ -259,6 +283,11 @@ while true; do
         fi
 
     done
+
+    ## Reset values
+    unset host
+    unset zone
+    unset type
 
     ## Go to sleep ##
     [[ ${LOG_LEVEL} -gt 2 ]] && echo "$(date +'%Y-%m-%d %H:%M:%S') - Going to sleep for ${INTERVAL} seconds..."
