@@ -9,7 +9,7 @@ logger() {
     if [[ $1 == i ]]; then
         [[ ${LOG_LEVEL} -gt $2 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - $3"
     else
-        [[ ${LOG_LEVEL} -gt $1 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [${DETECTION_MODE}] - [${host}] - [${type}] - $2"
+        [[ ${LOG_LEVEL} -gt $1 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [$((index+1))/${#cfhost[@]}] - [${host} - ${type}] - $2"
     fi
 }
 curl_header() {
@@ -90,7 +90,7 @@ while true; do
     ## CHECK FOR NEW IP ##
     newipv4="disabled"
     newipv6="disabled"
-    logger i 2 "Trying to get IP..."
+    logger i 2 "Attempting to find IP..."
     case "${DETECTION_MODE}" in
         dig-google.com)
             [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d '"')
@@ -129,8 +129,8 @@ while true; do
             [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
     esac
-    logger i 2 "IPv4 is: [$newipv4]"
-    logger i 2 "IPv6 is: [$newipv6]"
+    logger i 2 "IPv4 detected by [${DETECTION_MODE}] is [$newipv4]"
+    logger i 2 "IPv6 detected by [${DETECTION_MODE}] is [$newipv6]"
 
     ## LOG CONNECTION STATUS TO INFLUXDB IF ENABLED ##
     if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
