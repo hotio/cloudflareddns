@@ -29,6 +29,7 @@ INFLUXDB_HOST=${INFLUXDB_HOST}
 INFLUXDB_DB=${INFLUXDB_DB}
 INFLUXDB_USER=${INFLUXDB_USER}
 INFLUXDB_PASS=${INFLUXDB_PASS}
+APPRISE=${APPRISE}
 ----------------------------------------------------------------------
 "
 

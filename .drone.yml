@@ -40,6 +40,8 @@ steps:
     dockerfile: ${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}.Dockerfile
     tags:
       - ${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
+    build_args:
+      - APPRISE_VERSION=${APPRISE_VERSION=0.8.5}
 
 depends_on:
   - checks
@@ -62,6 +64,11 @@ steps:
   pull: always
   commands:
     - apt list --installed
+- name: show-version
+  image: ${DRONE_REPO_OWNER}/${DRONE_REPO_NAME##docker-}:${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
+  pull: always
+  commands:
+    - apprise --version
 
 depends_on:
   - linux-amd64
@@ -92,6 +99,8 @@ steps:
     dockerfile: ${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}.Dockerfile
     tags:
       - ${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
+    build_args:
+      - APPRISE_VERSION=${APPRISE_VERSION=0.8.5}
 
 depends_on:
   - checks
@@ -114,6 +123,11 @@ steps:
   pull: always
   commands:
     - apt list --installed
+- name: show-version
+  image: ${DRONE_REPO_OWNER}/${DRONE_REPO_NAME##docker-}:${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
+  pull: always
+  commands:
+    - apprise --version
 
 depends_on:
   - linux-arm64
@@ -144,6 +158,8 @@ steps:
     dockerfile: ${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}.Dockerfile
     tags:
       - ${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
+    build_args:
+      - APPRISE_VERSION=${APPRISE_VERSION=0.8.5}
 
 depends_on:
   - checks
@@ -166,6 +182,11 @@ steps:
   pull: always
   commands:
     - apt list --installed
+- name: show-version
+  image: ${DRONE_REPO_OWNER}/${DRONE_REPO_NAME##docker-}:${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
+  pull: always
+  commands:
+    - apprise --version
 
 depends_on:
   - linux-arm
