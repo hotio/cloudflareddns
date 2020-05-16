@@ -24,6 +24,26 @@ curl_header() {
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
     fi
 }
+influxdb() {
+    if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
+        if result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
+            logger 2 "InfluxDB: Connection to [${INFLUXDB_HOST}] succeeded."
+            if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
+                logger 2 "InfluxDB: Database [${INFLUXDB_DB}] found."
+            else
+                logger 2 "InfluxDB: Database [${INFLUXDB_DB}] not found! Creating database..."
+                curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}" > /dev/null
+            fi
+            if curl -s -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "$1"; then
+                logger 2 "InfluxDB: Wrote [$1] to [${INFLUXDB_DB}]@[${INFLUXDB_HOST}]."
+            else
+                logger 0 "${RED}InfluxDB: Something went wrong trying to write [$1] to [${INFLUXDB_DB}]@[${INFLUXDB_HOST}]!${NC}"
+            fi
+        else
+            logger 0 "${RED}InfluxDB: Connection to [${INFLUXDB_HOST}] failed!${NC}"
+        fi
+    fi
+}
 
 #############
 ## STARTUP ##
@@ -61,25 +81,6 @@ IFS="${DEFAULTIFS}"
 # SETUP CACHE
 cache_location="${1:-/dev/shm}"
 rm -f "${cache_location}"/*.cache
-
-###################################
-## CREATE INFLUXDB DB IF ENABLED ##
-###################################
-
-if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
-    if result=$(curl -fsSL -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
-        logger i 0 "Connection to [${INFLUXDB_HOST}] succeeded!"
-        if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
-            logger i 0 "Database [${INFLUXDB_DB}] found!"
-        else
-            logger i 0 "Database [${INFLUXDB_DB}] not found! Creating database..."
-            curl -fsSL -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}" > /dev/null
-            logger i 0 "Adding sample data..."
-            curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=sample-generator,domain=ipv4.cloudflare.com,recordtype=A ip=\"1.1.1.1\""
-            curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=sample-generator,domain=ipv6.cloudflare.com,recordtype=AAAA ip=\"2606:4700:4700::1111\""
-        fi
-    fi
-fi
 
 #################
 ## UPDATE LOOP ##
@@ -131,22 +132,6 @@ while true; do
     esac
     logger i 2 "IPv4 detected by [${DETECTION_MODE}] is [$newipv4]"
     logger i 2 "IPv6 detected by [${DETECTION_MODE}] is [$newipv6]"
-
-    ## LOG CONNECTION STATUS TO INFLUXDB IF ENABLED ##
-    if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
-        logger i 2 "Writing connection status to InfluxDB..."
-        if [[ $newipv4 =~ $regexv4 ]]; then
-            curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "connection,host=$(hostname),type=ipv4 status=1,ip=\"$newipv4\""
-        else
-            curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "connection,host=$(hostname),type=ipv4 status=0,ip=\"no ipv4\""
-        fi
-
-        if [[ $newipv6 =~ $regexv6 ]]; then
-            curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "connection,host=$(hostname),type=ipv6 status=1,ip=\"$newipv6\""
-        else
-            curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "connection,host=$(hostname),type=ipv6 status=0,ip=\"no ipv6\""
-        fi
-    fi
 
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
@@ -255,7 +240,7 @@ while true; do
                     else
                         logger 0 "Updating IP [$ip] to [$newip]: ${GREEN}OK${NC}"
                         logger 3 "${YELLOW}Response from Cloudflare:\n$(echo "${response}" | jq .)${NC}"
-                        [[ ${INFLUXDB_ENABLED} == "true" ]] && curl -fsSL -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "domains,host=$(hostname),domain=${host},recordtype=${type} ip=\"$newip\"" && logger 2 "Wrote IP update to InfluxDB."
+                        influxdb "domains,host=$(hostname),domain=${host},recordtype=${type} ip=\"$newip\""
                         rm "$cache" && logger 2 "Deleted cache file: $cache"
                     fi
                 else
