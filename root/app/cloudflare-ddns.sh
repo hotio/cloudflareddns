@@ -9,7 +9,7 @@ logger() {
     if [[ $1 == i ]]; then
         [[ ${LOG_LEVEL} -gt $2 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - $3"
     else
-        [[ ${LOG_LEVEL} -gt $1 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [$((index+1))/${#cfhost[@]}] - [${host} - ${type}] - $2"
+        [[ ${LOG_LEVEL} -gt $1 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [$((index+1))/${#cfhost[@]}] [${host} - ${type}] $2"
     fi
 }
 curl_header() {
