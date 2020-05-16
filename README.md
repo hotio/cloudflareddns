@@ -183,7 +183,7 @@ Information about the domain updates can be found in `domains`.
 
 ## Sending notifications using Apprise
 
-You can send notifications when a DNS record gets updated with a new IP using [Apprise](https://github.com/caronc/apprise/blob/master/README.md). You can use the environment variable `APPRISE` for that, see below for some examples.
+You can send notifications when a DNS record gets updated with a new IP using [Apprise](https://github.com/caronc/apprise/blob/master/README.md). Use the environment variable `APPRISE` to configure notifications, see below for some examples.
 
 ```shell
 -e APPRISE="pover://user@token"
