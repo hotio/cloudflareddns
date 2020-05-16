@@ -180,3 +180,12 @@ You can also import the grafana dashboard pictured below by copying and pasting 
 ![grafana_panel](https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/grafana/grafana.png "Grafana Dashboard Panel")
 
 Information about the domain updates can be found in `domains`.
+
+## Sending notifications using Apprise
+
+You can send notifications when a DNS record gets updated with a new IP using [Apprise](https://github.com/caronc/apprise/blob/master/README.md). You can use the environment variable `APPRISE` for that, see below for some examples.
+
+```shell
+-e APPRISE="pover://user@token"
+-e APPRISE="pover://user@token;discord://webhook_id/webhook_token"
+```
