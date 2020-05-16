@@ -33,7 +33,7 @@ influxdb() {
             else
                 logger 2 "InfluxDB: Database [${INFLUXDB_DB}@${INFLUXDB_HOST}] not found! Creating database..."
                 result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}")
-                if [[ $(echo "${result}" | jq -r .results[].statement_id) != 0 ]]; then
+                if [[ "${result}" == *error* ]]; then
                     logger 0 "${RED}InfluxDB: Error response from [${INFLUXDB_HOST}]:\n$(echo "${result}" | jq .)${NC}"
                 fi
             fi
