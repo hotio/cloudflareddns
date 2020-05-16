@@ -6,26 +6,26 @@
 ###############
 
 logger() {
-    if [[ $1 == i ]]; then
-        [[ ${LOG_LEVEL} -gt $2 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - $3"
+    if [[ ${1} == i ]]; then
+        [[ ${LOG_LEVEL} -gt ${2} ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - ${3}"
     else
-        [[ ${LOG_LEVEL} -gt $1 ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [$((index+1))/${#cfhost[@]}] [${host} - ${type}] $2"
+        [[ ${LOG_LEVEL} -gt ${1} ]] && >&2 echo -e "$(date +'%Y-%m-%d %H:%M:%S') - [$((index+1))/${#cfhost[@]}] [${host} - ${type}] ${2}"
     fi
 }
 curl_header() {
     if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *dns_records* ]]; then
-        logger 2 "Contacting [$3], using [CF_APITOKEN_ZONE=${BMAGENTA}${CF_APITOKEN_ZONE}${NC}] to authenticate..."
+        logger 2 "Contacting [${3}], using [CF_APITOKEN_ZONE=${BMAGENTA}${CF_APITOKEN_ZONE}${NC}] to authenticate..."
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN_ZONE}" "$@"
     elif [[ -n ${CF_APITOKEN} ]]; then
-        logger 2 "Contacting [$3], using [CF_APITOKEN=${BMAGENTA}${CF_APITOKEN}${NC}] to authenticate..."
+        logger 2 "Contacting [${3}], using [CF_APITOKEN=${BMAGENTA}${CF_APITOKEN}${NC}] to authenticate..."
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
     else
-        logger 2 "Contacting [$3], using [CF_USER=${BMAGENTA}${CF_USER}${NC} & CF_APIKEY=${BMAGENTA}${CF_APIKEY}${NC}] to authenticate..."
+        logger 2 "Contacting [${3}], using [CF_USER=${BMAGENTA}${CF_USER}${NC} & CF_APIKEY=${BMAGENTA}${CF_APIKEY}${NC}] to authenticate..."
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
     fi
 }
 influxdb() {
-    if [[ ${INFLUXDB_ENABLED} == "true" ]]; then
+    if [[ ${INFLUXDB_ENABLED} == true ]]; then
         if result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
             logger 2 "InfluxDB: Connection to [${INFLUXDB_HOST}] succeeded."
             if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
@@ -33,18 +33,19 @@ influxdb() {
             else
                 logger 2 "InfluxDB: Database [${INFLUXDB_DB}@${INFLUXDB_HOST}] not found! Trying to create database..."
                 result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}")
-                if [[ "${result}" == *error* ]]; then
+                if [[ ${result} == *error* ]]; then
                     logger 0 "${RED}InfluxDB: Error response from [${INFLUXDB_HOST}]:\n$(echo "${result}" | jq .)${NC}"
                 else
                     logger 2 "InfluxDB: Created database [${INFLUXDB_DB}@${INFLUXDB_HOST}]."
                 fi
             fi
-            logger 2 "InfluxDB: Trying to write [$1] to [${INFLUXDB_DB}@${INFLUXDB_HOST}]..."
-            result=$(curl -s -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "$1")
-            if [[ "${result}" == *error* ]]; then
+            scheme="domains,host=$(hostname),domain=${1},recordtype=${2} ip=\"${3}\""
+            logger 2 "InfluxDB: Trying to write [${scheme}] to [${INFLUXDB_DB}@${INFLUXDB_HOST}]..."
+            result=$(curl -s -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "${scheme}")
+            if [[ ${result} == *error* ]]; then
                 logger 0 "${RED}InfluxDB: Error response from [${INFLUXDB_HOST}]:\n$(echo "${result}" | jq .)${NC}"
             else
-                logger 2 "InfluxDB: Wrote [$1] to [${INFLUXDB_DB}@${INFLUXDB_HOST}]."
+                logger 2 "InfluxDB: Wrote [${scheme}] to [${INFLUXDB_DB}@${INFLUXDB_HOST}]."
             fi
         else
             logger 0 "${RED}InfluxDB: Connection to [${INFLUXDB_HOST}] failed!${NC}"
@@ -137,8 +138,8 @@ while true; do
             [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
     esac
-    logger i 2 "IPv4 detected by [${DETECTION_MODE}] is [$newipv4]"
-    logger i 2 "IPv6 detected by [${DETECTION_MODE}] is [$newipv6]"
+    logger i 2 "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]"
+    logger i 2 "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]"
 
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
@@ -167,7 +168,7 @@ while true; do
                 ;;
         esac
 
-        if ! [[ $newip =~ $regex ]]; then
+        if ! [[ ${newip} =~ ${regex} ]]; then
             logger 0 "${RED}Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection.${NC}"
         else
 
@@ -182,7 +183,7 @@ while true; do
             ##################################################
             ## Try getting the DNS records                  ##
             ##################################################
-            if [[ ! -f "$cache" ]]; then
+            if [[ ! -f ${cache} ]]; then
 
                 ## Try getting the Zone ID ##
                 zoneid=""
@@ -197,26 +198,26 @@ while true; do
                         logger 3 "${YELLOW}Response from Cloudflare:\n$(echo "${response}" | jq .)${NC}"
                         zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${zone}"'") | .id')
                         if [[ -n ${zoneid} ]]; then
-                            logger 2 "Zone ID returned by Cloudflare for zone [${zone}] is: $zoneid"
+                            logger 2 "Zone ID returned by Cloudflare for zone [${zone}] is: ${zoneid}"
                         else
                             logger 0 "${RED}Something went wrong trying to find the Zone ID of [${zone}] in the zone list!${NC}"
                         fi
                     fi
                 elif [[ -n ${zone} ]]; then
-                    zoneid=${zone} && logger 2 "Zone ID supplied by [CF_ZONES] is: $zoneid"
+                    zoneid=${zone} && logger 2 "Zone ID supplied by [CF_ZONES] is: ${zoneid}"
                 fi
 
                 ## Try getting the DNS records from Cloudflare ##
-                if [[ -n $zoneid ]]; then
+                if [[ -n ${zoneid} ]]; then
                     logger 2 "Reading DNS records from Cloudflare"
-                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records")
+                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         logger 0 "${RED}Error response from Cloudflare:\n$(echo "${response}" | jq .)${NC}"
                     else
                         logger 3 "${YELLOW}Response from Cloudflare:\n$(echo "${response}" | jq .)${NC}"
                         dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${host}"'") | select (.type == "'"${type}"'")')
                         if [[ -n ${dnsrecords} ]]; then
-                            echo "$dnsrecords" > "$cache" && logger 2 "Wrote DNS records to cache file: $cache" && logger 3 "${YELLOW}Data written to cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
+                            echo "${dnsrecords}" > "${cache}" && logger 2 "Wrote DNS records to cache file: ${cache}" && logger 3 "${YELLOW}Data written to cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
                         else
                             logger 0 "${RED}Something went wrong trying to find [${host} - ${type}] in the DNS records returned by Cloudflare!${NC}"
                         fi
@@ -224,7 +225,7 @@ while true; do
                 fi
 
             else
-                dnsrecords=$(cat "$cache") && logger 2 "Read back DNS records from cache file: $cache" && logger 3 "${YELLOW}Data read from cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
+                dnsrecords=$(cat "${cache}") && logger 2 "Read back DNS records from cache file: ${cache}" && logger 3 "${YELLOW}Data read from cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
             fi
             ##################################################
 
@@ -233,25 +234,25 @@ while true; do
             ##################################################
             if [[ -n ${dnsrecords} ]]; then
 
-                 zoneid=$(echo "$dnsrecords" | jq -r '.zone_id' | head -1)
-                     id=$(echo "$dnsrecords" | jq -r '.id'      | head -1)
-                proxied=$(echo "$dnsrecords" | jq -r '.proxied' | head -1)
-                    ttl=$(echo "$dnsrecords" | jq -r '.ttl'     | head -1)
-                     ip=$(echo "$dnsrecords" | jq -r '.content' | head -1)
+                 zoneid=$(echo "${dnsrecords}" | jq -r '.zone_id' | head -1)
+                     id=$(echo "${dnsrecords}" | jq -r '.id'      | head -1)
+                proxied=$(echo "${dnsrecords}" | jq -r '.proxied' | head -1)
+                    ttl=$(echo "${dnsrecords}" | jq -r '.ttl'     | head -1)
+                     ip=$(echo "${dnsrecords}" | jq -r '.content' | head -1)
 
-                if [[ "$ip" != "$newip" ]]; then
+                if [[ ${ip} != "${newip}" ]]; then
                     logger 2 "Updating DNS record"
-                    response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$id" --data '{"id":"'"$id"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"$newip"'","ttl":'"$ttl"',"proxied":'"$proxied"'}')
+                    response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         logger 0 "${RED}Error response from Cloudflare:\n$(echo "${response}" | jq .)${NC}"
                     else
-                        logger 0 "Updating IP [$ip] to [$newip]: ${GREEN}OK${NC}"
+                        logger 0 "Updating IP [${ip}] to [${newip}]: ${GREEN}OK${NC}"
                         logger 3 "${YELLOW}Response from Cloudflare:\n$(echo "${response}" | jq .)${NC}"
-                        influxdb "domains,host=$(hostname),domain=${host},recordtype=${type} ip=\"$newip\""
-                        rm "$cache" && logger 2 "Deleted cache file: $cache"
+                        influxdb "${host}" "${type}" "${newip}"
+                        rm "${cache}" && logger 2 "Deleted cache file: ${cache}"
                     fi
                 else
-                    logger 1 "Updating IP [$ip] to [$newip]: ${YELLOW}NO CHANGE${NC}"
+                    logger 1 "Updating IP [${ip}] to [${newip}]: ${YELLOW}NO CHANGE${NC}"
                 fi
 
             fi
