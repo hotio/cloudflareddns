@@ -31,18 +31,20 @@ influxdb() {
             if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
                 logger 2 "InfluxDB: Database [${INFLUXDB_DB}@${INFLUXDB_HOST}] found."
             else
-                logger 2 "InfluxDB: Database [${INFLUXDB_DB}@${INFLUXDB_HOST}] not found! Creating database..."
+                logger 2 "InfluxDB: Database [${INFLUXDB_DB}@${INFLUXDB_HOST}] not found! Trying to create database..."
                 result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}")
                 if [[ "${result}" == *error* ]]; then
                     logger 0 "${RED}InfluxDB: Error response from [${INFLUXDB_HOST}]:\n$(echo "${result}" | jq .)${NC}"
+                else
+                    logger 2 "InfluxDB: Created database [${INFLUXDB_DB}@${INFLUXDB_HOST}]."
                 fi
             fi
             logger 2 "InfluxDB: Trying to write [$1] to [${INFLUXDB_DB}@${INFLUXDB_HOST}]..."
             result=$(curl -s -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "$1")
-            if [[ -z ${result} ]]; then
-                logger 2 "InfluxDB: Wrote [$1] to [${INFLUXDB_DB}@${INFLUXDB_HOST}]."
-            else
+            if [[ "${result}" == *error* ]]; then
                 logger 0 "${RED}InfluxDB: Error response from [${INFLUXDB_HOST}]:\n$(echo "${result}" | jq .)${NC}"
+            else
+                logger 2 "InfluxDB: Wrote [$1] to [${INFLUXDB_DB}@${INFLUXDB_HOST}]."
             fi
         else
             logger 0 "${RED}InfluxDB: Connection to [${INFLUXDB_HOST}] failed!${NC}"
