@@ -31,28 +31,6 @@ The environment variables below are all optional, the values you see are the def
 
 Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`.
 
-For `LOG_LEVEL` you can pick `0`, `1`, `2` or `3`.
-
-* `0` will give no log output. It's not recommended to use.
-
-* `1` will give you the following output types. It's the recommended value when all things are configured and running as expected.
-
-```shell
-UPDATE, WARNING, ERROR
-```
-
-* `2` will give you the following output types. Use this if you always wanna see what's going on, but `3` gives you too much output.
-
-```shell
-UPDATE, WARNING, ERROR, INFO
-```
-
-* `3` will give you the following output types. This is the default.
-
-```shell
-UPDATE, WARNING, ERROR, INFO, DEBUG
-```
-
 The following environment variables are used to configure the domains you would like to update.
 
 ```shell
@@ -173,6 +151,30 @@ Below are some example configuration combinations, ordered from most secure to l
 2020-05-15 19:23:50 -    INFO - [2/2] [test.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/dns_records], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
 2020-05-15 19:23:50 -   ERROR - [2/2] [test.example.com - A] Something went wrong trying to find [test.example.com - A] in the DNS records returned by Cloudflare!
 2020-05-15 19:23:50 -    INFO - Going to sleep for 300 seconds...
+```
+
+## Log levels
+
+For `LOG_LEVEL` you can pick `0`, `1`, `2` or `3`.
+
+* `0` will give no log output. It's not recommended to use.
+
+* `1` will give you the following output types. It's the recommended value when all things are configured and running as expected.
+
+```shell
+UPDATE, WARNING, ERROR
+```
+
+* `2` will give you the following output types. Use this if you always wanna see what's going on, but `3` gives you too much output.
+
+```shell
+UPDATE, WARNING, ERROR, INFO
+```
+
+* `3` will give you the following output types. This is the default.
+
+```shell
+UPDATE, WARNING, ERROR, INFO, DEBUG
 ```
 
 ## Cached results from Cloudflare
