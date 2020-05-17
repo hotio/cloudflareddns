@@ -6,8 +6,13 @@
 ###############
 
 logger() {
-    LOG_TYPE=${2}
-    LOG_MESSAGE=${1}
+
+          LOG_TYPE=${2}
+       LOG_MESSAGE=${1}
+        LOG_NUMBER="$([[ -n ${host} ]] && echo "[$((index+1))/${#cfhost[@]}] ")"
+    LOG_RECORDTYPE="$([[ -n ${host} ]] && echo "[${type}] ")"
+          LOG_HOST="$([[ -n ${host} ]] && echo "(${host}) ")"
+
     case "${LOG_TYPE}" in
         UPDATE)
             LEVEL=0
@@ -31,53 +36,55 @@ logger() {
             COLOR=""
             ;;
     esac
-    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && >&2 printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%s%s\n" "$(echo -e "${COLOR}")" "${LOG_TYPE}" "$([[ -n ${host} ]] && echo "[$((index+1))/${#cfhost[@]}]")" "$([[ -n ${host} ]] && echo " [${host} - ${type}] ")" "$(echo -e "${LOG_MESSAGE}")" "$(echo -e "${NC}")"
+
+    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && >&2 printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%s%s%s\n" "$(echo -e "${COLOR}")" "${LOG_TYPE}" "${LOG_NUMBER}" "${LOG_RECORDTYPE}" "${LOG_HOST}" "$(echo -e "${LOG_MESSAGE}")" "$(echo -e "${NC}")"
+
 }
-curl_header() {
+fcurl() {
     if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *dns_records* ]]; then
-        logger "Contacting [${3}], using [CF_APITOKEN_ZONE=${BMAGENTA}${CF_APITOKEN_ZONE}${NC}] to authenticate..."
+        logger "...using [CF_APITOKEN_ZONE] to authenticate"
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN_ZONE}" "$@"
     elif [[ -n ${CF_APITOKEN} ]]; then
-        logger "Contacting [${3}], using [CF_APITOKEN=${BMAGENTA}${CF_APITOKEN}${NC}] to authenticate..."
+        logger "...using [CF_APITOKEN] to authenticate"
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
     else
-        logger "Contacting [${3}], using [CF_USER=${BMAGENTA}${CF_USER}${NC} & CF_APIKEY=${BMAGENTA}${CF_APIKEY}${NC}] to authenticate..."
+        logger "...using [CF_USER & CF_APIKEY] to authenticate"
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
     fi
 }
-influxdb() {
+finfluxdb() {
     if [[ ${INFLUXDB_ENABLED} == true ]]; then
         if result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
-            logger "Connection to InfluxDB host [${INFLUXDB_HOST}] succeeded."
+            logger "Connection to InfluxDB host (${INFLUXDB_HOST}) succeeded."
             if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
-                logger "InfluxDB database [${INFLUXDB_DB}@${INFLUXDB_HOST}] found."
+                logger "InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST}) found."
             else
-                logger "InfluxDB database [${INFLUXDB_DB}@${INFLUXDB_HOST}] not found! Trying to create database..."
+                logger "InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST}) not found! Trying to create database..."
                 result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}")
                 if [[ ${result} == *error* ]]; then
                     logger "Error response:\n$(echo "${result}" | jq .)" ERROR
                 else
-                    logger "InfluxDB database [${INFLUXDB_DB}@${INFLUXDB_HOST}] created."
+                    logger "InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST}) created."
                 fi
             fi
             scheme="domains,host=$(hostname),domain=${1},recordtype=${2} ip=\"${3}\""
-            logger "Trying to write [${scheme}] to InfluxDB database [${INFLUXDB_DB}@${INFLUXDB_HOST}]..."
+            logger "Trying to write (${scheme}) to InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST})..."
             result=$(curl -s -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "${scheme}")
             if [[ ${result} == *error* ]]; then
                 logger "Error response:\n$(echo "${result}" | jq .)" ERROR
             else
-                logger "Wrote [${scheme}] to InfluxDB database [${INFLUXDB_DB}@${INFLUXDB_HOST}]."
+                logger "Wrote (${scheme}) to InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST})."
             fi
         else
-            logger "Connection to InfluxDB host [${INFLUXDB_HOST}] failed!" ERROR
+            logger "Connection to InfluxDB host (${INFLUXDB_HOST}) failed!" ERROR
         fi
     fi
 }
 fapprise() {
     if [[ -n ${APPRISE} ]]; then
         for index in ${!apprise_uri[*]}; do
-            logger "Sending notification with Apprise to [${apprise_uri[$index]}]"
-            apprise -t "Cloudflare DDNS" -b "DNS record [${1}] has been updated to [${2}]." "${apprise_uri[$index]}" || logger "Error response:\n${result}" ERROR
+            logger "Sending notification with Apprise to (${apprise_uri[$index]})"
+            apprise -t "Cloudflare DDNS" -b "DNS record [${2}] (${1}) has been updated to (${3})." "${apprise_uri[$index]}" || logger "Error response:\n${result}" ERROR
         done
     fi
 }
@@ -91,7 +98,6 @@ RED='\e[31m'
 GREEN='\e[32m'
 YELLOW='\e[33m'
 BLUE='\e[34m'
-BMAGENTA='\e[45m'
 NC='\e[0m'
 
 # SET REGEX
@@ -169,8 +175,8 @@ while true; do
             [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
     esac
-    logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]"
-    logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]"
+    logger "IPv4 detected by [${DETECTION_MODE}] is (${newipv4})"
+    logger "IPv6 detected by [${DETECTION_MODE}] is (${newipv6})"
 
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
@@ -181,12 +187,12 @@ while true; do
             type=${cftype[$index]}
         elif [[ -z ${type} ]]; then
             type="A"
-            logger "No value was found in [CF_RECORDTYPES] for host [${host}], also no previous value was found, the default [A] is used instead." WARNING
+            logger "No value was found in [CF_RECORDTYPES] for host (${host}), also no previous value was found, the default [A] is used instead." WARNING
         else
-            logger "No value was found in [CF_RECORDTYPES] for host [${host}], the previous value [${type}] is used instead." WARNING
+            logger "No value was found in [CF_RECORDTYPES] for host (${host}), the previous value [${type}] is used instead." WARNING
         fi
 
-        cache="${cache_location}/cf-ddns-${host}-${type}.cache"
+        cache="${cache_location}/cf-ddns-${type}-${host}.cache"
 
         case "${type}" in
             A)
@@ -200,15 +206,15 @@ while true; do
         esac
 
         if ! [[ ${newip} =~ ${regex} ]]; then
-            logger "Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection." ERROR
+            logger "Returned IP (${newip}) by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection." ERROR
         else
 
             if [[ -n ${cfzone[$index]} ]]; then
                 zone=${cfzone[$index]}
             elif [[ -z ${zone} ]]; then
-                logger "No value was found in [CF_ZONES] for host [${host}], also no previous value was found, can't do anything until you fix this!" ERROR
+                logger "No value was found in [CF_ZONES] for host (${host}), also no previous value was found, can't do anything until you fix this!" ERROR
             else
-                logger "No value was found in [CF_ZONES] for host [${host}], the previous value [${zone}] is used instead." WARNING
+                logger "No value was found in [CF_ZONES] for host (${host}), the previous value (${zone}) is used instead." WARNING
             fi
 
             ##################################################
@@ -222,7 +228,7 @@ while true; do
                 if [[ ${zone} == *.* ]]; then
                     if [[ -z ${zonelist} ]]; then
                         logger "Reading zone list from Cloudflare"
-                        response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones")
+                        response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones")
                         if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                             logger "Error response:\n$(echo "${response}" | jq .)" ERROR
                         else
@@ -236,36 +242,36 @@ while true; do
                     if [[ -n ${zonelist} ]]; then
                         zoneid=$(echo "${zonelist}" | jq -r '. | select (.name == "'"${zone}"'") | .id')
                         if [[ -n ${zoneid} ]]; then
-                            logger "Zone ID found for zone [${zone}] is: ${zoneid}"
+                            logger "Zone ID found for zone (${zone}) is (${zoneid})"
                         else
-                            logger "Something went wrong trying to find the Zone ID of [${zone}] in the zone list!" ERROR
+                            logger "Something went wrong trying to find the Zone ID of (${zone}) in the zone list!" ERROR
                         fi
                     else
                         logger "Something went wrong trying to get the zone list!" ERROR
                     fi
                 elif [[ -n ${zone} ]]; then
-                    zoneid=${zone} && logger "Zone ID supplied by [CF_ZONES] is: ${zoneid}"
+                    zoneid=${zone} && logger "Zone ID supplied by [CF_ZONES] is (${zoneid})"
                 fi
 
                 ## Try getting the DNS records from Cloudflare ##
                 if [[ -n ${zoneid} ]]; then
                     logger "Reading DNS records from Cloudflare"
-                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=${type}&name=${host}")
+                    response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=${type}&name=${host}")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         logger "Error response:\n$(echo "${response}" | jq .)" ERROR
                     else
                         logger "Response:\n$(echo "${response}" | jq -r '.result[]')" DEBUG
                         dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${host}"'") | select (.type == "'"${type}"'")')
                         if [[ -n ${dnsrecords} ]]; then
-                            echo "${dnsrecords}" > "${cache}" && logger "Wrote DNS records to cache file: ${cache}" INFO && logger "Data written to cache:\n$(echo "${dnsrecords}" | jq .)" DEBUG
+                            echo "${dnsrecords}" > "${cache}" && logger "Wrote DNS records to cache file (${cache})" INFO && logger "Data written to cache:\n$(echo "${dnsrecords}" | jq .)" DEBUG
                         else
-                            logger "Something went wrong trying to find [${host} - ${type}] in the DNS records returned by Cloudflare!" ERROR
+                            logger "Something went wrong trying to find [${type}] (${host}) in the DNS records returned by Cloudflare!" ERROR
                         fi
                     fi
                 fi
 
             else
-                dnsrecords=$(cat "${cache}") && logger "Read back DNS records from cache file: ${cache}" INFO && logger "Data read from cache:\n$(echo "${dnsrecords}" | jq .)" DEBUG
+                dnsrecords=$(cat "${cache}") && logger "Read back DNS records from cache file (${cache})" INFO && logger "Data read from cache:\n$(echo "${dnsrecords}" | jq .)" DEBUG
             fi
             ##################################################
 
@@ -282,18 +288,18 @@ while true; do
 
                 if [[ ${ip} != "${newip}" ]]; then
                     logger "Updating DNS record"
-                    response=$(curl_header -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
+                    response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         logger "Error response:\n$(echo "${response}" | jq .)" ERROR
                     else
-                        logger "Updating IP [${ip}] to [${newip}]: OK" UPDATE
+                        logger "Updating IP (${ip}) to (${newip}), status [OK]" UPDATE
                         logger "Response:\n$(echo "${response}" | jq .)" DEBUG
-                        influxdb "${host}" "${type}" "${newip}"
-                        fapprise "${host} - ${type}" "${newip}"
-                        rm "${cache}" && logger "Deleted cache file: ${cache}"
+                        finfluxdb "${host}" "${type}" "${newip}"
+                        fapprise "${host}" "${type}" "${newip}"
+                        rm "${cache}" && logger "Deleted cache file (${cache})"
                     fi
                 else
-                    logger "Updating IP [${ip}] to [${newip}]: NO CHANGE"
+                    logger "Updating IP (${ip}) to (${newip}), status [NO CHANGE]"
                 fi
 
             fi
@@ -309,7 +315,7 @@ while true; do
     unset type
 
     ## Go to sleep ##
-    logger "Going to sleep for ${INTERVAL} seconds..."
+    logger "Going to sleep for [${INTERVAL}] seconds..."
     sleep "${INTERVAL}"
 
 done
