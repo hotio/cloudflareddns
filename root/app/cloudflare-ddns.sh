@@ -198,19 +198,28 @@ while true; do
                 zoneid=""
                 dnsrecords=""
                 if [[ ${zone} == *.* ]]; then
-                    logger 2 "Reading zone list from Cloudflare"
-                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones")
-                    if [[ $(echo "${response}" | jq -r .success) == false ]]; then
-                        logger 0 "${RED}Error response:\n$(echo "${response}" | jq .)${NC}"
+                    if [[ -z ${zonelist} ]]; then
+                        logger 2 "Reading zone list from Cloudflare"
+                        response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones")
+                        if [[ $(echo "${response}" | jq -r .success) == false ]]; then
+                            logger 0 "${RED}Error response:\n$(echo "${response}" | jq .)${NC}"
+                        else
+                            zonelist=$(echo "${response}" | jq -r '.result[] | {name, id}')
+                            logger 2 "Retrieved zone list from Cloudflare"
+                            logger 3 "${YELLOW}Response:\n${zonelist}${NC}"
+                        fi
                     else
-                        logger 2 "Retrieved zone list from Cloudflare"
-                        logger 3 "${YELLOW}Response:\n$(echo "${response}" | jq .)${NC}"
-                        zoneid=$(echo "${response}" | jq -r '.result[] | select (.name == "'"${zone}"'") | .id')
+                        logger 2 "Reading zone list from memory"
+                    fi
+                    if [[ -n ${zonelist} ]]; then
+                        zoneid=$(echo "${zonelist}" | jq -r '. | select (.name == "'"${zone}"'") | .id')
                         if [[ -n ${zoneid} ]]; then
-                            logger 2 "Zone ID returned by Cloudflare for zone [${zone}] is: ${zoneid}"
+                            logger 2 "Zone ID found for zone [${zone}] is: ${zoneid}"
                         else
                             logger 0 "${RED}Something went wrong trying to find the Zone ID of [${zone}] in the zone list!${NC}"
                         fi
+                    else
+                        logger 0 "${RED}Something went wrong trying to get the zone list!${NC}"
                     fi
                 elif [[ -n ${zone} ]]; then
                     zoneid=${zone} && logger 2 "Zone ID supplied by [CF_ZONES] is: ${zoneid}"
@@ -219,11 +228,11 @@ while true; do
                 ## Try getting the DNS records from Cloudflare ##
                 if [[ -n ${zoneid} ]]; then
                     logger 2 "Reading DNS records from Cloudflare"
-                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records")
+                    response=$(curl_header -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=${type}&name=${host}")
                     if [[ $(echo "${response}" | jq -r .success) == false ]]; then
                         logger 0 "${RED}Error response:\n$(echo "${response}" | jq .)${NC}"
                     else
-                        logger 3 "${YELLOW}Response:\n$(echo "${response}" | jq .)${NC}"
+                        logger 3 "${YELLOW}Response:\n$(echo "${response}" | jq -r '.result[]')${NC}"
                         dnsrecords=$(echo "${response}" | jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${host}"'") | select (.type == "'"${type}"'")')
                         if [[ -n ${dnsrecords} ]]; then
                             echo "${dnsrecords}" > "${cache}" && logger 2 "Wrote DNS records to cache file: ${cache}" && logger 3 "${YELLOW}Data written to cache:\n$(echo "${dnsrecords}" | jq .)${NC}"
