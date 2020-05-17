@@ -27,6 +27,7 @@ The environment variables below are all optional, the values you see are the def
 -e LOG_LEVEL=3
 -e CHECK_IPV4="true"
 -e CHECK_IPV6="false"
+-e APPRISE=""
 ```
 
 Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`.
