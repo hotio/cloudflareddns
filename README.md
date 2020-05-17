@@ -173,31 +173,20 @@ UPDATE, WARNING, ERROR, INFO
 UPDATE, WARNING, ERROR, INFO, DEBUG
 ```
 
+## JSON log
+
+Every IP update is also logged to `/config/app/cf-ddns-updates.json`. This can be used with the [Telegraf JSON parser](https://github.com/influxdata/telegraf/tree/master/plugins/parsers/json) and the `tail` input, to get your domain updates into InfluxDB. Example output below.
+
+```json
+{"domain":"vpn.example.com","recordtype":"A","ip":"1.1.1.1","timestamp":"2020-05-17T20:27:14Z"}
+{"domain":"vpn.example.com","recordtype":"A","ip":"1.1.1.1","timestamp":"2020-05-17T20:29:26Z"}
+```
+
 ## Cached results from Cloudflare
 
 The returned results from Cloudflare are cached. This means minimal api calls to Cloudflare. If you have made any manual changes to the IP on the Cloudflare webinterface, for instance when wanting to test an update, a container restart is needed to clear the cache.
 
 The proxy setting (orange cloud) and TTL is also cached and re-set based on the previous value, so if you made any modifications to these settings, you should restart the container so that the script is aware of the new settings.
-
-## InfluxDB Logging
-
-You can enable logging of the new ip to InfluxDB by setting `INFLUXDB_ENABLED` to `true`, below are the defaults. When a succesful update has been done to Cloudflare, the new ip will be logged.
-
-```shell
--e INFLUXDB_ENABLED="false"
--e INFLUXDB_HOST="http://127.0.0.1:8086"
--e INFLUXDB_DB="cloudflare_ddns"
--e INFLUXDB_USER=""
--e INFLUXDB_PASS=""
-```
-
-It is also recommended that you add `--hostname YOUR_CONTAINER_HOSTNAME` to your docker command, otherwise the hostname that is logged to InfluxDB will change on every container update.
-
-You can also import the grafana dashboard pictured below by copying and pasting the json ([Link to Grafana Dasboard JSON](https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/grafana/Cloudflare%20DDNS-1565783977844.json)). By default only the last entry is shown, but you can show all entries by removing `LIMIT 1` on the Query settings page.
-
-![grafana_panel](https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/grafana/grafana.png "Grafana Dashboard Panel")
-
-Information about the domain updates can be found in `domains`.
 
 ## Sending notifications using Apprise
 
