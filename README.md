@@ -132,25 +132,21 @@ Below are some example configuration combinations, ordered from most secure to l
 
 ## Example of the log output
 
+All personal info is usually in between `()`, except in the `DEBUG` and certain `ERROR` messages. Take this into consideration if you need to supply your log to help troubleshoot a problem.
+
 ```text
-2020-05-15 19:23:48 -    INFO - Attempting to find IP...
-2020-05-15 19:23:48 -    INFO - IPv4 detected by [dig-whoami.cloudflare] is [1.1.1.1]
-2020-05-15 19:23:48 -    INFO - IPv6 detected by [dig-whoami.cloudflare] is [disabled]
-2020-05-15 19:23:48 -    INFO - [1/2] [vpn.example.com - A] Reading zone list from Cloudflare
-2020-05-15 19:23:48 -    INFO - [1/2] [vpn.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
-2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Retrieved zone list from Cloudflare
-2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Zone ID found for zone [example.com] is: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Reading DNS records from Cloudflare
-2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/dns_records], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
-2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Wrote DNS records to cache file: /config/app/cf-ddns-vpn.example.com-A.cache
-2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Updating IP [1.1.1.1] to [1.1.1.1]: NO CHANGE
-2020-05-15 19:23:49 - WARNING - [2/2] [test.example.com - A] No value was found in [CF_ZONES] for host [test.example.com], the previous value [example.com] is used instead.
-2020-05-15 19:23:49 -    INFO - [2/2] [test.example.com - A] Reading zone list from memory
-2020-05-15 19:23:50 -    INFO - [2/2] [test.example.com - A] Zone ID found for zone [example.com] is: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-2020-05-15 19:23:50 -    INFO - [2/2] [test.example.com - A] Reading DNS records from Cloudflare
-2020-05-15 19:23:50 -    INFO - [2/2] [test.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/dns_records], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
-2020-05-15 19:23:50 -   ERROR - [2/2] [test.example.com - A] Something went wrong trying to find [test.example.com - A] in the DNS records returned by Cloudflare!
-2020-05-15 19:23:50 -    INFO - Going to sleep for 300 seconds...
+2020-05-17 17:20:54 -    INFO - Attempting to find IP...
+2020-05-17 17:20:54 -    INFO - IPv4 detected by [dig-whoami.cloudflare] is (1.1.1.1)
+2020-05-17 17:20:54 -    INFO - IPv6 detected by [dig-whoami.cloudflare] is (disabled)
+2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Reading zone list from Cloudflare
+2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) ...using [CF_USER & CF_APIKEY] to authenticate
+2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Retrieved zone list from Cloudflare
+2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Zone ID found for zone (example.com) is (xxxxxxxxxxxxxxxxxxxxxxxx)
+2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Reading DNS records from Cloudflare
+2020-05-17 17:20:55 -    INFO - [1/1] [A] (vpn.example.com) ...using [CF_USER & CF_APIKEY] to authenticate
+2020-05-17 17:20:55 -    INFO - [1/1] [A] (vpn.example.com) Wrote DNS records to cache file (/config/app/cf-ddns-A-vpn.example.com.cache)
+2020-05-17 17:20:55 -    INFO - [1/1] [A] (vpn.example.com) Updating IP (1.1.1.1) to (1.1.1.1), status [NO CHANGE]
+2020-05-17 17:20:55 -    INFO - Going to sleep for [300] seconds...
 ```
 
 ## Log levels
