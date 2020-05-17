@@ -52,41 +52,18 @@ fcurl() {
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
     fi
 }
-finfluxdb() {
-    if [[ ${INFLUXDB_ENABLED} == true ]]; then
-        if result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=SHOW DATABASES"); then
-            logger "Connection to InfluxDB host (${INFLUXDB_HOST}) succeeded."
-            if echo "${result}" | jq -erc ".results[].series[].values[] | select(. == [\"${INFLUXDB_DB}\"])" > /dev/null; then
-                logger "InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST}) found."
-            else
-                logger "InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST}) not found! Trying to create database..."
-                result=$(curl -s -XPOST "${INFLUXDB_HOST}/query" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-urlencode "q=CREATE DATABASE ${INFLUXDB_DB}")
-                if [[ ${result} == *error* ]]; then
-                    logger "Error response:\n$(echo "${result}" | jq .)" ERROR
-                else
-                    logger "InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST}) created."
-                fi
-            fi
-            scheme="domains,host=$(hostname),domain=${1},recordtype=${2} ip=\"${3}\""
-            logger "Trying to write (${scheme}) to InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST})..."
-            result=$(curl -s -XPOST "${INFLUXDB_HOST}/write?db=${INFLUXDB_DB}" -u "${INFLUXDB_USER}:${INFLUXDB_PASS}" --data-binary "${scheme}")
-            if [[ ${result} == *error* ]]; then
-                logger "Error response:\n$(echo "${result}" | jq .)" ERROR
-            else
-                logger "Wrote (${scheme}) to InfluxDB database (${INFLUXDB_DB}@${INFLUXDB_HOST})."
-            fi
-        else
-            logger "Connection to InfluxDB host (${INFLUXDB_HOST}) failed!" ERROR
-        fi
-    fi
-}
 fapprise() {
     if [[ -n ${APPRISE} ]]; then
         for index in ${!apprise_uri[*]}; do
             logger "Sending notification with Apprise to (${apprise_uri[$index]})"
-            apprise -t "Cloudflare DDNS" -b "DNS record [${2}] (${1}) has been updated to (${3})." "${apprise_uri[$index]}" || logger "Error response:\n${result}" ERROR
+            result=$(apprise -t "Cloudflare DDNS" -b "DNS record [${2}] (${1}) has been updated to (${3})." "${apprise_uri[$index]}") || logger "Error response:\n${result}" ERROR
         done
     fi
+}
+fjson() {
+    updates_json="${cache_location}/cf-ddns-updates.json"
+    logger "Writing domain update to (${updates_json})"
+    echo '{"domain":"'"${1}"'","recordtype":"'"${2}"'","ip":"'"${3}"'","timestamp":"'"$(date --utc +%FT%TZ)"'"}' >> "${updates_json}"
 }
 
 #############
@@ -294,7 +271,7 @@ while true; do
                     else
                         logger "Updating IP (${ip}) to (${newip}), status [OK]" UPDATE
                         logger "Response:\n$(echo "${response}" | jq .)" DEBUG
-                        finfluxdb "${host}" "${type}" "${newip}"
+                        fjson "${host}" "${type}" "${newip}"
                         fapprise "${host}" "${type}" "${newip}"
                         rm "${cache}" && logger "Deleted cache file (${cache})"
                     fi
