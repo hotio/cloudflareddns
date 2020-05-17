@@ -29,7 +29,29 @@ The environment variables below are all optional, the values you see are the def
 -e CHECK_IPV6="false"
 ```
 
-Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. For `LOG_LEVEL` you can pick `0` to disable logging, `1` to log only errors or actual updates, `2` to also log when nothing has changed, `3` to get debug logging and `4` to get very verbose debug logs.
+Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`.
+
+For `LOG_LEVEL` you can pick `0`, `1`, `2` or `3`.
+
+* `0` will give no log output. It's not recommended to use.
+
+* `1` will give you the following output types. It's the recommended value when all things are configured and running as expected.
+
+```shell
+UPDATE, WARNING, ERROR
+```
+
+* `2` will give you the following output types. Use this if you always wanna see what's going on, but `3` gives you too much output.
+
+```shell
+UPDATE, WARNING, ERROR, INFO
+```
+
+* `3` will give you the following output types. This is the default.
+
+```shell
+UPDATE, WARNING, ERROR, INFO, DEBUG
+```
 
 The following environment variables are used to configure the domains you would like to update.
 
