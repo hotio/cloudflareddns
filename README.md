@@ -155,26 +155,24 @@ Below are some example configuration combinations, ordered from most secure to l
 ## Example of the log output
 
 ```text
-2020-05-15 19:23:48 - Attempting to find IP...
-2020-05-15 19:23:48 - IPv4 detected by [dig-whoami.cloudflare] is [1.1.1.1]
-2020-05-15 19:23:48 - IPv6 detected by [dig-whoami.cloudflare] is [disabled]
-2020-05-15 19:23:48 - [1/2] [vpn.example.com - A] Reading zone list from Cloudflare
-2020-05-15 19:23:48 - [1/2] [vpn.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
-2020-05-15 19:23:49 - [1/2] [vpn.example.com - A] Retrieved zone list from Cloudflare
-2020-05-15 19:23:49 - [1/2] [vpn.example.com - A] Zone ID returned by Cloudflare for zone [example.com] is: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-2020-05-15 19:23:49 - [1/2] [vpn.example.com - A] Reading DNS records from Cloudflare
-2020-05-15 19:23:49 - [1/2] [vpn.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/dns_records], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
-2020-05-15 19:23:49 - [1/2] [vpn.example.com - A] Wrote DNS records to cache file: /config/app/cf-ddns-vpn.example.com-A.cache
-2020-05-15 19:23:49 - [1/2] [vpn.example.com - A] Updating IP [1.1.1.1] to [1.1.1.1]: NO CHANGE
-2020-05-15 19:23:49 - [2/2] [test.example.com - A] No value was found in [CF_ZONES] for host [test.example.com], the previous value [example.com] is used instead.
-2020-05-15 19:23:49 - [2/2] [test.example.com - A] Reading zone list from Cloudflare
-2020-05-15 19:23:50 - [2/2] [test.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
-2020-05-15 19:23:50 - [2/2] [test.example.com - A] Retrieved zone list from Cloudflare
-2020-05-15 19:23:50 - [2/2] [test.example.com - A] Zone ID returned by Cloudflare for zone [example.com] is: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-2020-05-15 19:23:50 - [2/2] [test.example.com - A] Reading DNS records from Cloudflare
-2020-05-15 19:23:50 - [2/2] [test.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/dns_records], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
-2020-05-15 19:23:50 - [2/2] [test.example.com - A] Something went wrong trying to find [test.example.com - A] in the DNS records returned by Cloudflare!
-2020-05-15 19:23:50 - Going to sleep for 300 seconds...
+2020-05-15 19:23:48 -    INFO - Attempting to find IP...
+2020-05-15 19:23:48 -    INFO - IPv4 detected by [dig-whoami.cloudflare] is [1.1.1.1]
+2020-05-15 19:23:48 -    INFO - IPv6 detected by [dig-whoami.cloudflare] is [disabled]
+2020-05-15 19:23:48 -    INFO - [1/2] [vpn.example.com - A] Reading zone list from Cloudflare
+2020-05-15 19:23:48 -    INFO - [1/2] [vpn.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
+2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Retrieved zone list from Cloudflare
+2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Zone ID found for zone [example.com] is: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Reading DNS records from Cloudflare
+2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/dns_records], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
+2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Wrote DNS records to cache file: /config/app/cf-ddns-vpn.example.com-A.cache
+2020-05-15 19:23:49 -    INFO - [1/2] [vpn.example.com - A] Updating IP [1.1.1.1] to [1.1.1.1]: NO CHANGE
+2020-05-15 19:23:49 - WARNING - [2/2] [test.example.com - A] No value was found in [CF_ZONES] for host [test.example.com], the previous value [example.com] is used instead.
+2020-05-15 19:23:49 -    INFO - [2/2] [test.example.com - A] Reading zone list from memory
+2020-05-15 19:23:50 -    INFO - [2/2] [test.example.com - A] Zone ID found for zone [example.com] is: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+2020-05-15 19:23:50 -    INFO - [2/2] [test.example.com - A] Reading DNS records from Cloudflare
+2020-05-15 19:23:50 -    INFO - [2/2] [test.example.com - A] Contacting [https://api.cloudflare.com/client/v4/zones/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/dns_records], using [CF_USER=your.email@gmail.com & CF_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] to authenticate...
+2020-05-15 19:23:50 -   ERROR - [2/2] [test.example.com - A] Something went wrong trying to find [test.example.com - A] in the DNS records returned by Cloudflare!
+2020-05-15 19:23:50 -    INFO - Going to sleep for 300 seconds...
 ```
 
 ## Cached results from Cloudflare
