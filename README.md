@@ -133,20 +133,16 @@ Below are some example configuration combinations, ordered from most secure to l
 
 ## Example of the log output
 
-All personal info is usually in between `()`, except in the `DEBUG` and certain `ERROR` messages. Take this into consideration if you need to supply your log to help troubleshoot a problem.
-
 ```text
-2020-05-17 17:20:54 -    INFO - Attempting to find IP...
-2020-05-17 17:20:54 -    INFO - IPv4 detected by [dig-whoami.cloudflare] is (1.1.1.1)
-2020-05-17 17:20:54 -    INFO - IPv6 detected by [dig-whoami.cloudflare] is (disabled)
-2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Reading zone list from Cloudflare
-2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) ...using [CF_USER & CF_APIKEY] to authenticate
-2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Retrieved zone list from Cloudflare
-2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Zone ID found for zone (example.com) is (xxxxxxxxxxxxxxxxxxxxxxxx)
-2020-05-17 17:20:54 -    INFO - [1/1] [A] (vpn.example.com) Reading DNS records from Cloudflare
-2020-05-17 17:20:55 -    INFO - [1/1] [A] (vpn.example.com) ...using [CF_USER & CF_APIKEY] to authenticate
-2020-05-17 17:20:55 -    INFO - [1/1] [A] (vpn.example.com) Wrote DNS records to cache file (/config/app/cf-ddns-A-vpn.example.com.cache)
-2020-05-17 17:20:55 -    INFO - [1/1] [A] (vpn.example.com) Updating IP (1.1.1.1) to (1.1.1.1), status [NO CHANGE]
+2020-05-17 17:20:54 -    INFO - IP address lookup started.
+2020-05-17 17:20:54 -    INFO - IPv4 detected by [dig-whoami.cloudflare] is [1.1.1.1].
+2020-05-17 17:20:54 -    INFO - IPv6 detected by [dig-whoami.cloudflare] is [disabled].
+2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Reading zone list from Cloudflare.
+2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Retrieved zone list from Cloudflare.
+2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Zone ID found for zone [example.com] is [xxxxxxxxxxxxxxxxxxxxxxxx].
+2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Reading DNS records from Cloudflare.
+2020-05-17 17:20:55 -    INFO - [1/1] [A] [vpn.example.com] Wrote DNS records to cache file [/config/app/cf-ddns-A-vpn.example.com.cache].
+2020-05-17 17:20:55 -    INFO - [1/1] [A] [vpn.example.com] No update needed.
 2020-05-17 17:20:55 -    INFO - Going to sleep for [300] seconds...
 ```
 
