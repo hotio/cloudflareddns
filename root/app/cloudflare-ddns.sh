@@ -198,89 +198,81 @@ while true; do
             ## Try getting the DNS records                  ##
             ##################################################
             if [[ ! -f ${cache} ]]; then
-
                 ## Try getting the Zone ID ##
                 zoneid=""
-                dnsrecords=""
+                dnsrecord=""
                 if [[ ${zone} == *.* ]]; then
                     if [[ -z ${zonelist} ]]; then
                         logger "Reading zone list from Cloudflare."
                         response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones")
-                        if [[ $(jq -r .success <<< "${response}") == false ]]; then
+                        if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                             logger "Error response:\n$(jq . <<< "${response}")" ERROR
+                        elif [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
+                            logger "No zone list was returned!" ERROR
                         else
-                            zonelist=$(jq -r '.result[] | {name, id}' <<< "${response}")
-                            logger "Retrieved zone list from Cloudflare."
+                            zonelist=$(jq . <<< "${response}")
                             logger "Response:\n${zonelist}" DEBUG
+                            logger "Retrieved zone list from Cloudflare."
                         fi
                     else
                         logger "Reading zone list from memory."
                     fi
                     if [[ -n ${zonelist} ]]; then
-                        zoneid=$(jq -r '. | select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
+                        zoneid=$(jq -r '.result[] | select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
                         if [[ -n ${zoneid} ]]; then
-                            logger "Zone ID found for zone [${zone}] is [${zoneid}]."
+                            logger "Zone ID [${zoneid}] found for zone [${zone}]."
                         else
-                            logger "Something went wrong trying to find the Zone ID of [${zone}] in the zone list!" ERROR
+                            logger "Couldn't find the Zone ID for zone [${zone}]!" ERROR
                         fi
-                    else
-                        logger "Something went wrong trying to get the zone list!" ERROR
                     fi
                 elif [[ -n ${zone} ]]; then
                     zoneid=${zone} && logger "Zone ID supplied by [CF_ZONES] is [${zoneid}]."
                 fi
 
-                ## Try getting the DNS records from Cloudflare ##
+                ## Try getting the DNS record from Cloudflare ##
                 if [[ -n ${zoneid} ]]; then
-                    logger "Reading DNS records from Cloudflare."
+                    logger "Reading DNS record from Cloudflare."
                     response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=${type}&name=${host}")
-                    if [[ $(jq -r .success <<< "${response}") == false ]]; then
+                    if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                         logger "Error response:\n$(jq . <<< "${response}")" ERROR
+                    elif [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
+                        logger "No DNS record was returned!" ERROR
                     else
-                        logger "Response:\n$(jq -r '.result[]' <<< "${response}")" DEBUG
-                        dnsrecords=$(jq -r '.result[] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | select (.name == "'"${host}"'") | select (.type == "'"${type}"'")' <<< "${response}")
-                        if [[ -n ${dnsrecords} ]]; then
-                            printf "%s" "${dnsrecords}" > "${cache}" && logger "Wrote DNS records to cache file [${cache}]." INFO && logger "Data written to cache:\n$(jq . <<< "${dnsrecords}")" DEBUG
-                        else
-                            logger "Couldn't find [${type}] [${host}] in the DNS records returned by Cloudflare!" ERROR
-                        fi
+                        logger "Response:\n$(jq . <<< "${response}")" DEBUG
+                        dnsrecord=$(jq -r '.result[0] | {name, id, zone_id, zone_name, content, type, proxied, ttl}' <<< "${response}")
+                        logger "Writing DNS record to cache file [${cache}]." INFO && printf "%s" "${dnsrecord}" > "${cache}" && logger "Data written to cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
                     fi
                 fi
-
             else
-                dnsrecords=$(<"${cache}") && logger "Read back DNS records from cache file [${cache}]." INFO && logger "Data read from cache:\n$(jq . <<< "${dnsrecords}")" DEBUG
+                logger "Reading DNS record from cache file [${cache}]." INFO && dnsrecord=$(<"${cache}") && logger "Data read from cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
             fi
-            ##################################################
 
             ##################################################
             ## If DNS records were retrieved, do the update ##
             ##################################################
-            if [[ -n ${dnsrecords} ]]; then
-
-                 zoneid=$(jq -r '.zone_id' <<< "${dnsrecords}" | head -1)
-                     id=$(jq -r '.id'      <<< "${dnsrecords}" | head -1)
-                proxied=$(jq -r '.proxied' <<< "${dnsrecords}" | head -1)
-                    ttl=$(jq -r '.ttl'     <<< "${dnsrecords}" | head -1)
-                     ip=$(jq -r '.content' <<< "${dnsrecords}" | head -1)
+            if [[ -n ${dnsrecord} ]]; then
+                 zoneid=$(jq -r '.zone_id' <<< "${dnsrecord}")
+                     id=$(jq -r '.id'      <<< "${dnsrecord}")
+                proxied=$(jq -r '.proxied' <<< "${dnsrecord}")
+                    ttl=$(jq -r '.ttl'     <<< "${dnsrecord}")
+                     ip=$(jq -r '.content' <<< "${dnsrecord}")
 
                 if [[ ${ip} != "${newip}" ]]; then
                     logger "Updating DNS record."
                     response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
-                    if [[ $(jq -r .success <<< "${response}") == false ]]; then
+                    if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                         logger "Error response:\n$(jq . <<< "${response}")" ERROR
                     else
-                        logger "Updated IP [${ip}] to [${newip}]." UPDATE
                         logger "Response:\n$(jq . <<< "${response}")" DEBUG
+                        logger "Updated IP [${ip}] to [${newip}]." UPDATE
+                        rm "${cache}" && logger "Deleted cache file [${cache}]."
                         fjson "${host}" "${type}" "${newip}"
                         fapprise "${host}" "${type}" "${newip}"
-                        rm "${cache}" && logger "Deleted cache file [${cache}]."
                     fi
                 else
                     logger "No update needed."
                 fi
-
             fi
-            ##################################################
 
         fi
 
