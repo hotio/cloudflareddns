@@ -74,12 +74,11 @@ fjson() {
 #############
 
 # SET COLORS
-TERM=xterm
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
-YELLOW=$(tput setaf 3)
-BLUE=$(tput setaf 4)
-NC=$(tput sgr0)
+RED=$(tput -Txterm setaf 1)
+GREEN=$(tput -Txterm setaf 2)
+YELLOW=$(tput -Txterm setaf 3)
+BLUE=$(tput -Txterm setaf 4)
+NC=$(tput -Txterm sgr0)
 
 # SET REGEX
 regexv4='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
@@ -266,7 +265,7 @@ while true; do
                     else
                         logger "Response:\n$(jq . <<< "${response}")" DEBUG
                         logger "Updated IP [${ip}] to [${newip}]." UPDATE
-                        rm "${cache}" && logger "Deleted cache file [${cache}]."
+                        logger "Deleting cache file [${cache}]." && rm "${cache}"
                         fjson "${host}" "${type}" "${newip}"
                         fapprise "${host}" "${type}" "${newip}"
                     fi
