@@ -257,6 +257,7 @@ while true; do
                     ttl=$(jq -r '.ttl'     <<< "${dnsrecord}")
                      ip=$(jq -r '.content' <<< "${dnsrecord}")
 
+                logger "Checking if update is needed."
                 if [[ ${ip} != "${newip}" ]]; then
                     logger "Updating DNS record."
                     response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
