@@ -139,9 +139,10 @@ Below are some example configuration combinations, ordered from most secure to l
 2020-05-17 17:20:54 -    INFO - IPv6 detected by [dig-whoami.cloudflare] is [disabled].
 2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Reading zone list from Cloudflare.
 2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Retrieved zone list from Cloudflare.
-2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Zone ID found for zone [example.com] is [xxxxxxxxxxxxxxxxxxxxxxxx].
-2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Reading DNS records from Cloudflare.
-2020-05-17 17:20:55 -    INFO - [1/1] [A] [vpn.example.com] Wrote DNS records to cache file [/config/app/cf-ddns-A-vpn.example.com.cache].
+2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Zone ID [xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] found for zone [example.com].
+2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Reading DNS record from Cloudflare.
+2020-05-17 17:20:55 -    INFO - [1/1] [A] [vpn.example.com] Writing DNS record to cache file [/config/app/cf-ddns-A-vpn.example.com.cache].
+2020-05-17 17:20:55 -    INFO - [1/1] [A] [vpn.example.com] Checking if update is needed.
 2020-05-17 17:20:55 -    INFO - [1/1] [A] [vpn.example.com] No update needed.
 2020-05-17 17:20:55 -    INFO - Going to sleep for [300] seconds...
 ```
