@@ -276,7 +276,7 @@ while true; do
                         rm "${cache}" && logger "Deleted cache file [${cache}]."
                     fi
                 else
-                    logger "No IP update needed."
+                    logger "No update needed."
                 fi
 
             fi
