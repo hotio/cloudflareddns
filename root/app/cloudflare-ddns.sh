@@ -207,12 +207,14 @@ while true; do
                         response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones")
                         if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                             logger "Error response:\n$(jq . <<< "${response}")" ERROR
-                        elif [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
+                        elif [[ $(jq -r '.success' <<< "${response}") == true ]] && [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
                             logger "No zone list was returned!" ERROR
-                        else
+                        elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
                             zonelist=$(jq . <<< "${response}")
                             logger "Response:\n${zonelist}" DEBUG
                             logger "Retrieved zone list from Cloudflare."
+                        else
+                            logger "An unexpected error occured!" ERROR
                         fi
                     else
                         logger "Reading zone list from memory."
@@ -235,12 +237,14 @@ while true; do
                     response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=${type}&name=${host}")
                     if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                         logger "Error response:\n$(jq . <<< "${response}")" ERROR
-                    elif [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
+                    elif [[ $(jq -r '.success' <<< "${response}") == true ]] && [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
                         logger "No DNS record was returned!" ERROR
-                    else
+                    elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
                         logger "Response:\n$(jq . <<< "${response}")" DEBUG
                         dnsrecord=$(jq -r '.result[0] | {name, id, zone_id, zone_name, content, type, proxied, ttl}' <<< "${response}")
                         logger "Writing DNS record to cache file [${cache}]." INFO && printf "%s" "${dnsrecord}" > "${cache}" && logger "Data written to cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
+                    else
+                        logger "An unexpected error occured!" ERROR
                     fi
                 fi
             else
@@ -263,12 +267,14 @@ while true; do
                     response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
                     if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                         logger "Error response:\n$(jq . <<< "${response}")" ERROR
-                    else
+                    elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
                         logger "Response:\n$(jq . <<< "${response}")" DEBUG
                         logger "Updated IP [${ip}] to [${newip}]." UPDATE
                         logger "Deleting cache file [${cache}]." && rm "${cache}"
                         fjson "${host}" "${type}" "${newip}"
                         fapprise "${host}" "${type}" "${newip}"
+                    else
+                        logger "An unexpected error occured!" ERROR
                     fi
                 else
                     logger "No update needed."
