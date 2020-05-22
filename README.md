@@ -30,7 +30,7 @@ The environment variables below are all optional, the values you see are the def
 -e APPRISE=""
 ```
 
-Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`.
+Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. If you want to get the local ip from a network interface, use something like `local:eth0` as `DETECTION_MODE`.
 
 The following environment variables are used to configure the domains you would like to update.
 
