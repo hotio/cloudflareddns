@@ -151,6 +151,10 @@ while true; do
             [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 ifconfig.co)
             [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
+        local:*)
+            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}' | head -1)
+            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet6" {gsub(/\/.*$/, "", $2); print $2}' | head -1)
+            ;;
     esac
     logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]."
     logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]."

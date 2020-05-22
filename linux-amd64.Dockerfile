@@ -9,7 +9,7 @@ ARG APPRISE_VERSION
 # install packages
 RUN apt update && \
     apt install -y --no-install-recommends --no-install-suggests \
-        dnsutils \
+        iproute2 dnsutils \
         python3-pip python3-setuptools && \
     pip3 install --no-cache-dir --upgrade apprise==${APPRISE_VERSION} && \
 # clean up
