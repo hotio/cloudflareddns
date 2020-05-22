@@ -2,7 +2,7 @@ FROM hotio/base@sha256:b7f9f793ba275ea953ce4979b7a7c86e35ec3c2a93ca5932d0e0845ed
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
-ENV INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflare" LOG_LEVEL=3 CHECK_IPV4="true" CHECK_IPV6="false"
+ENV INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflare" LOG_LEVEL=3
 
 ARG APPRISE_VERSION
 

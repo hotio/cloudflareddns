@@ -85,8 +85,6 @@ regexv4='^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
 regexv6='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
 
 # SET DEFAULTS
-CHECK_IPV4="${CHECK_IPV4:-true}"
-CHECK_IPV6="${CHECK_IPV6:-false}"
 INTERVAL="${INTERVAL:-300}"
 DETECTION_MODE="${DETECTION_MODE:-dig-whoami.cloudflare}"
 LOG_LEVEL="${LOG_LEVEL:-3}"
@@ -104,6 +102,12 @@ IFS="${DEFAULTIFS}"
 cache_location="${1:-/dev/shm}"
 rm -f "${cache_location}"/*.cache
 
+# CHECK WHAT IP CHECK WE NEED TO ENABLE
+for index in ${!cftype[*]}; do
+    [[ ${cftype[$index]} == "A" ]]    && CHECK_IPV4="true"
+    [[ ${cftype[$index]} == "AAAA" ]] && CHECK_IPV6="true"
+done
+
 #################
 ## UPDATE LOOP ##
 #################
@@ -111,9 +115,6 @@ rm -f "${cache_location}"/*.cache
 while true; do
 
     ## CHECK FOR NEW IP ##
-    newipv4="disabled"
-    newipv6="disabled"
-    logger "IP address lookup started."
     case "${DETECTION_MODE}" in
         dig-google.com)
             [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
@@ -156,8 +157,8 @@ while true; do
             [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet6" {gsub(/\/.*$/, "", $2); print $2}' | head -1)
             ;;
     esac
-    logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]."
-    logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]."
+    [[ ${CHECK_IPV4} == "true" ]] && logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]."
+    [[ ${CHECK_IPV6} == "true" ]] && logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]."
 
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
