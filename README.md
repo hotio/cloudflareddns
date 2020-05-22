@@ -25,8 +25,6 @@ The environment variables below are all optional, the values you see are the def
 -e INTERVAL=300
 -e DETECTION_MODE="dig-whoami.cloudflare"
 -e LOG_LEVEL=3
--e CHECK_IPV4="true"
--e CHECK_IPV6="false"
 -e APPRISE=""
 ```
 
@@ -134,9 +132,7 @@ Below are some example configuration combinations, ordered from most secure to l
 ## Example of the log output
 
 ```text
-2020-05-17 17:20:54 -    INFO - IP address lookup started.
 2020-05-17 17:20:54 -    INFO - IPv4 detected by [dig-whoami.cloudflare] is [1.1.1.1].
-2020-05-17 17:20:54 -    INFO - IPv6 detected by [dig-whoami.cloudflare] is [disabled].
 2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Reading zone list from Cloudflare.
 2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Retrieved zone list from Cloudflare.
 2020-05-17 17:20:54 -    INFO - [1/1] [A] [vpn.example.com] Zone ID [xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] found for zone [example.com].
