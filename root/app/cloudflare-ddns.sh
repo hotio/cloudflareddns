@@ -59,7 +59,7 @@ fapprise() {
     if [[ -n ${APPRISE} ]]; then
         for index in ${!apprise_uri[*]}; do
             logger "Sending notification with Apprise to [${apprise_uri[$index]}]."
-            result=$(apprise -t "Cloudflare DDNS" -b "DNS record [${2}] [${1}] has been updated to [${3}]." "${apprise_uri[$index]}") || logger "Error response:\n${result}" ERROR
+            result=$(apprise -v -t "Cloudflare DDNS" -b "DNS record [${2}] [${1}] has been updated to [${3}]." "${apprise_uri[$index]}") || logger "Error response:\n${result}" ERROR
         done
     fi
 }
