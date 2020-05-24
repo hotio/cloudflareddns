@@ -1,6 +1,6 @@
 # cloudflare-ddns
 
-<img src="https://raw.githubusercontent.com/hotio/unraid-templates/master/hotio/img/cloudflare-ddns.png" alt="Logo" height="130" width="130">
+<img src="https://raw.githubusercontent.com/hotio/docker-cloudflare-ddns/master/img/cloudflare-ddns.png" alt="Logo" height="130" width="130">
 
 [![GitHub](https://img.shields.io/badge/source-github-lightgrey)](https://github.com/hotio/docker-cloudflare-ddns)
 [![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns)](https://hub.docker.com/r/hotio/cloudflare-ddns)
