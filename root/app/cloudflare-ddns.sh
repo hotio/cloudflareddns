@@ -12,10 +12,12 @@ logger() {
     if [[ -n ${host} ]]; then
         LOG_NUMBER="[$((index+1))/${#cfhost[@]}] "
         LOG_RECORDTYPE="[${type}] "
+        LOG_ZONE="[${zone}] "
         LOG_HOST="[${host}] "
     else
         unset LOG_NUMBER
         unset LOG_RECORDTYPE
+        unset LOG_ZONE
         unset LOG_HOST
     fi
 
@@ -43,7 +45,7 @@ logger() {
             ;;
     esac
 
-    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%s%b%s\n" "${COLOR}" "${LOG_TYPE}" "${LOG_NUMBER}" "${LOG_RECORDTYPE}" "${LOG_HOST}" "${LOG_MESSAGE}" "${NC}"
+    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%s%s%b%s\n" "${COLOR}" "${LOG_TYPE}" "${LOG_NUMBER}" "${LOG_RECORDTYPE}" "${LOG_ZONE}" "${LOG_HOST}" "${LOG_MESSAGE}" "${NC}"
 
 }
 fcurl() {
@@ -168,8 +170,8 @@ while true; do
         if [[ -n ${cftype[$index]} ]]; then
             type=${cftype[$index]}
         elif [[ -z ${type} ]]; then
-            type="A"
-            logger "No value was found in [CF_RECORDTYPES] for host [${host}], also no previous value was found, the default [A] is used instead." WARNING
+            logger "No value was found in [CF_RECORDTYPES] for host [${host}], also no previous value was found, can't do anything until you fix this!" ERROR
+            break
         else
             logger "No value was found in [CF_RECORDTYPES] for host [${host}], the previous value [${type}] is used instead." WARNING
         fi
@@ -188,13 +190,14 @@ while true; do
         esac
 
         if ! [[ ${newip} =~ ${regex} ]]; then
-            logger "Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection." ERROR
+            logger "Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection or configuration." ERROR
         else
 
             if [[ -n ${cfzone[$index]} ]]; then
                 zone=${cfzone[$index]}
             elif [[ -z ${zone} ]]; then
                 logger "No value was found in [CF_ZONES] for host [${host}], also no previous value was found, can't do anything until you fix this!" ERROR
+                break
             else
                 logger "No value was found in [CF_ZONES] for host [${host}], the previous value [${zone}] is used instead." WARNING
             fi
