@@ -1,4 +1,4 @@
-FROM hotio/base@sha256:e9e7a9c6526ef0263348fb100927ba401ecd079b86fcc261417e891a1033a90b
+FROM hotio/alpine@sha256:badfca67593c3b8f84cd9c0573f916e27a217bc8dac2ce9cf839141da5055472
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
@@ -7,16 +7,9 @@ ENV INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflare" LOG_LEVEL=3
 ARG APPRISE_VERSION
 
 # install packages
-RUN apt update && \
-    apt install -y --no-install-recommends --no-install-suggests \
-        iproute2 dnsutils \
-        python3-pip python3-setuptools && \
+RUN apk add --no-cache iproute2 bind-tools python3 py3-pip && \
     pip3 install --no-cache-dir --upgrade apprise==${APPRISE_VERSION} && \
-# clean up
-    apt purge -y python3-pip python3-setuptools && \
-    apt autoremove -y && \
-    apt clean && \
-    rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
+    apk del --purge py3-pip
 
 COPY root/ /
 
