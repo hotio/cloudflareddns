@@ -272,7 +272,7 @@ trigger:
 
 steps:
 - name: discord
-  image: ${DRONE_REPO_OWNER}/base:focal
+  image: ${DRONE_REPO_OWNER}/base:alpine
   pull: always
   environment:
     DISCORD_ID:
