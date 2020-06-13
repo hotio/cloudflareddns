@@ -41,7 +41,7 @@ steps:
     tags:
       - ${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
     build_args:
-      - APPRISE_VERSION=${APPRISE_VERSION=0.8.5}
+      - APPRISE_VERSION=${APPRISE_VERSION=0.8.6}
 
 depends_on:
   - checks
@@ -100,7 +100,7 @@ steps:
     tags:
       - ${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
     build_args:
-      - APPRISE_VERSION=${APPRISE_VERSION=0.8.5}
+      - APPRISE_VERSION=${APPRISE_VERSION=0.8.6}
 
 depends_on:
   - checks
@@ -159,7 +159,7 @@ steps:
     tags:
       - ${DRONE_COMMIT_BRANCH}-${DRONE_COMMIT_SHA:0:7}-${DRONE_BUILD_NUMBER}-${DRONE_STAGE_OS}-${DRONE_STAGE_ARCH}
     build_args:
-      - APPRISE_VERSION=${APPRISE_VERSION=0.8.5}
+      - APPRISE_VERSION=${APPRISE_VERSION=0.8.6}
 
 depends_on:
   - checks
