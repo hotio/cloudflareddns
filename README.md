@@ -49,10 +49,10 @@ Notice that we give 3 values each time for `CF_HOSTS`, `CF_ZONES` and `CF_RECORD
 
 ## Tags
 
-| Tag      | Description          | Build Status                                                                                                 | Last Updated                                                                                                                                                                    |
-| ---------|----------------------|--------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| latest   | The same as `stable` |                                                                                                              |                                                                                                               |
-| stable   | Stable version       | ![build](https://github.com/hotio/docker-cloudflare-ddns/workflows/build/badge.svg?branch=stable&event=push) | ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/hotio/docker-cloudflare-ddns/stable) |
+| Tag      | Description          |
+| ---------|----------------------|
+| latest   | The same as `stable` |
+| stable   | Stable version       |
 
 You can also find tags that reference a commit or version number.
 
