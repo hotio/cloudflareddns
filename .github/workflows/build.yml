@@ -48,7 +48,7 @@ jobs:
             --build-arg LABEL_SOURCE="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/tree/${GITHUB_REF//refs\/heads\//}" \
             --build-arg LABEL_VENDOR="${GITHUB_REPOSITORY%/*}" \
             --build-arg LABEL_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/master/README.md" \
-            --build-arg APPRISE_VERSION="${APPRISE_VERSION=0.8.7}" \
+            --build-arg APPRISE_VERSION="${APPRISE_VERSION=0.8.8}" \
             --file ./${ARCHITECTURE}.Dockerfile ./
 
       - name: Prepare for tests
