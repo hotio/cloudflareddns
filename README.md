@@ -50,10 +50,9 @@ Notice that we give 3 values each time for `CF_HOSTS`, `CF_ZONES` and `CF_RECORD
 
 ## Tags
 
-| Tag      | Description          |
-| ---------|----------------------|
-| latest   | The same as `stable` |
-| stable   | Stable version       |
+| Tag              | Description     |
+| -----------------|-----------------|
+| release (latest) | The main branch |
 
 You can also find tags that reference a commit or version number.
 
