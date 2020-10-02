@@ -12,37 +12,32 @@
 
 Just the basics to get the container running:
 
-```shell
-docker run --rm --name cloudflare-ddns -v /<host_folder_config>:/config hotio/cloudflare-ddns
+```shell hl_lines="3 4 5 6 7 8 9 10 11"
+docker run --rm \
+    --name cloudflare-ddns \
+    -e PUID=1000 \
+    -e PGID=1000 \
+    -e UMASK=002 \
+    -e TZ="Etc/UTC" \
+    -e ARGS="" \
+    -e INTERVAL=300 \
+    -e DETECTION_MODE="dig-whoami.cloudflare" \
+    -e LOG_LEVEL=3 \
+    -e APPRISE="" \
+    -e CF_USER="your.cf.email@example.com" \
+    -e CF_APIKEY="your.global.apikey" \
+    -e CF_APITOKEN="" \
+    -e CF_APITOKEN_ZONE="" \
+    -e CF_HOSTS="test.example.com;test.foobar.com;test2.foobar.com" \
+    -e CF_ZONES="example.com;foobar.com;foobar.com" \
+    -e CF_RECORDTYPES="A;A;AAAA" \
+    -v /<host_folder_config>:/config \
+    hotio/cloudflare-ddns
 ```
 
-The environment variables below are all optional, the values you see are the defaults.
-
-```shell
--e PUID=1000
--e PGID=1000
--e UMASK=002
--e TZ="Etc/UTC"
--e ARGS=""
--e INTERVAL=300
--e DETECTION_MODE="dig-whoami.cloudflare"
--e LOG_LEVEL=3
--e APPRISE=""
-```
+The [highlighted](https://hotio.dev/containers/cloudflare-ddns) variables are all optional, the values you see are the defaults.
 
 Possible values for `DETECTION_MODE` are `dig-google.com`, `dig-opendns.com`, `dig-whoami.cloudflare`, `curl-icanhazip.com`, `curl-wtfismyip.com`, `curl-showmyip.ca`, `curl-da.gd`, `curl-seeip.org` and `curl-ifconfig.co`. If you want to get the local ip from a network interface, use something like `local:eth0` as `DETECTION_MODE`.
-
-The following environment variables are used to configure the domains you would like to update.
-
-```shell
--e CF_USER="your.cf.email@example.com"
--e CF_APIKEY="your.global.apikey"
--e CF_APITOKEN=""
--e CF_APITOKEN_ZONE=""
--e CF_HOSTS="test.example.com;test.foobar.com;test2.foobar.com"
--e CF_ZONES="example.com;foobar.com;foobar.com"
--e CF_RECORDTYPES="A;A;AAAA"
-```
 
 Notice that we give 3 values each time for `CF_HOSTS`, `CF_ZONES` and `CF_RECORDTYPES`. In our example, the domain `test.foobar.com` belonging to the zone `foobar.com` will have its A record updated with an ipv4 ip. If you use `CF_APITOKEN`, you can leave `CF_USER` and `CF_APIKEY` empty.
 
@@ -50,9 +45,9 @@ Notice that we give 3 values each time for `CF_HOSTS`, `CF_ZONES` and `CF_RECORD
 
 ## Tags
 
-| Tag              | Description     |
-| -----------------|-----------------|
-| release (latest) | The main branch |
+| Tag                | Description     |
+| -------------------|-----------------|
+| `release` (latest) | The main branch |
 
 You can also find tags that reference a commit or version number.
 
