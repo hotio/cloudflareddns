@@ -1,5 +1,3 @@
-# cloudflare-ddns
-
 [<img src="https://hotio.dev/img/cloudflare-ddns.png" alt="logo" height="130" width="130">](https://github.com/hotio/docker-cloudflare-ddns)
 
 ![Base](https://img.shields.io/badge/base-alpine-blue)
