@@ -1,10 +1,10 @@
-[<img src="https://hotio.dev/img/cloudflare-ddns.png" alt="logo" height="130" width="130">](https://github.com/hotio/docker-cloudflare-ddns)
+[<img src="https://hotio.dev/img/cloudflare-ddns.png" alt="logo" height="130" width="130">](https://github.com/docker-hotio/docker-cloudflare-ddns)
 
-![Base](https://img.shields.io/badge/base-alpine-blue)
-[![GitHub](https://img.shields.io/badge/source-github-lightgrey)](https://github.com/hotio/docker-cloudflare-ddns)
-[![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns)](https://hub.docker.com/r/hotio/cloudflare-ddns)
-[![GitHub Registry](https://img.shields.io/badge/registry-ghcr.io-blue)](https://github.com/users/hotio/packages/container/package/cloudflare-ddns)
-[![Discord](https://img.shields.io/discord/610068305893523457?color=738ad6&label=discord&logo=discord&logoColor=white)](https://discord.gg/3SnkuKp)
+[![GitHub Source](https://img.shields.io/badge/github-source-ffb64c?style=flat-square&logo=github&logoColor=white)](https://github.com/docker-hotio/docker-cloudflare-ddns)
+[![GitHub Registry](https://img.shields.io/badge/github-registry-ffb64c?style=flat-square&logo=github&logoColor=white)](https://github.com/users/hotio/packages/container/package/cloudflare-ddns)
+[![Docker Pulls](https://img.shields.io/docker/pulls/hotio/cloudflare-ddns?color=ffb64c&style=flat-square&label=pulls&logo=docker&logoColor=white)](https://hub.docker.com/r/hotio/cloudflare-ddns)
+[![Discord](https://img.shields.io/discord/610068305893523457?style=flat-square&color=ffb64c&label=discord&logo=discord&logoColor=white)](https://hotio.dev/discord)
+[![Website](https://img.shields.io/badge/website-hotio.dev-ffb64c?style=flat-square)](https://hotio.dev/containers/cloudflare-ddns)
 
 ## Starting the container
 
@@ -21,7 +21,7 @@ docker run --rm \
     -e INTERVAL=300 \
     -e DETECTION_MODE="dig-whoami.cloudflare" \
     -e LOG_LEVEL=3 \
-    -e APPRISE="" \
+    -e cloudflare-ddns="" \
     -e CF_USER="your.cf.email@example.com" \
     -e CF_APIKEY="your.global.apikey" \
     -e CF_APITOKEN="" \
@@ -176,11 +176,11 @@ The returned results from Cloudflare are cached. This means minimal api calls to
 
 The proxy setting (orange cloud) and TTL is also cached and re-set based on the previous value, so if you made any modifications to these settings, you should restart the container so that the script is aware of the new settings.
 
-## Sending notifications using Apprise
+## Sending notifications using cloudflare-ddns
 
-You can send notifications when a DNS record gets updated with a new IP using [Apprise](https://github.com/caronc/apprise/blob/master/README.md). Use the environment variable `APPRISE` to configure notifications, see below for some examples.
+You can send notifications when a DNS record gets updated with a new IP using [cloudflare-ddns](https://github.com/caronc/cloudflare-ddns/blob/master/README.md). Use the environment variable `cloudflare-ddns` to configure notifications, see below for some examples.
 
 ```shell
--e APPRISE="pover://user@token"
--e APPRISE="pover://user@token;discord://webhook_id/webhook_token"
+-e cloudflare-ddns="pover://user@token"
+-e cloudflare-ddns="pover://user@token;discord://webhook_id/webhook_token"
 ```
