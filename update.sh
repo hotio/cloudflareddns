@@ -18,6 +18,6 @@ else
     version_apprise=$(curl -u "${GITHUB_ACTOR}:${GITHUB_TOKEN}" -fsSL "https://api.github.com/repos/caronc/apprise/releases/latest" | jq -r .tag_name | sed s/v//g)
     [[ -z ${version_apprise} ]] && exit 1
     version="${version_apprise}"
-    echo '{"apprise_version":"'"${version}"'"}' | jq > VERSION.json
+    echo '{"apprise_version":"'"${version}"'"}' | jq . > VERSION.json
     echo "##[set-output name=version;]${version}"
 fi
