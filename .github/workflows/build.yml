@@ -53,7 +53,6 @@ jobs:
         id: prep
         run: |
           ARCHITECTURE=${{ matrix.architecture }}
-          BUILD_ARGS=$(jq -r 'to_entries[] | [(.key | ascii_upcase),.value] | join("=")' < VERSION.json | paste -sd,)
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=title::${GITHUB_REPOSITORY//docker-/}:${GITHUB_REF//refs\/heads\//}
           echo ::set-output name=revision::${GITHUB_SHA}
@@ -63,7 +62,7 @@ jobs:
           echo ::set-output name=platform::${ARCHITECTURE//-/\/}
           echo ::set-output name=cache::${GITHUB_REPOSITORY//docker-/}:${GITHUB_REF//refs\/heads\//}-cache-${{ matrix.architecture }}
           echo ::set-output name=tag::${GITHUB_REPOSITORY//docker-/}:${GITHUB_REF//refs\/heads\//}-${GITHUB_SHA:0:7}-${GITHUB_RUN_NUMBER}-${{ matrix.architecture }}
-          echo ::set-output name=build-args::${BUILD_ARGS}
+          echo ::set-output name=version_apprise::$(jq -r '.apprise_version' < VERSION.json)
 
       - name: Build and push
         uses: docker/build-push-action@v2
@@ -83,7 +82,8 @@ jobs:
             org.opencontainers.image.source=${{ steps.prep.outputs.source }}
             org.opencontainers.image.vendor=${{ steps.prep.outputs.vendor }}
             org.opencontainers.image.url=${{ steps.prep.outputs.url }}
-          build-args: ${{ steps.prep.outputs.build-args }}
+          build-args: |
+            APPRISE_VERSION=${{ steps.prep.outputs.version_apprise }}
 
       - name: Dive Analysis
         uses: yuichielectric/dive-action@0.0.4
