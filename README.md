@@ -21,7 +21,7 @@ docker run --rm \
     -e INTERVAL=300 \
     -e DETECTION_MODE="dig-whoami.cloudflare" \
     -e LOG_LEVEL=3 \
-    -e cloudflare-ddns="" \
+    -e APPRISE="" \
     -e CF_USER="your.cf.email@example.com" \
     -e CF_APIKEY="your.global.apikey" \
     -e CF_APITOKEN="" \
@@ -176,11 +176,11 @@ The returned results from Cloudflare are cached. This means minimal api calls to
 
 The proxy setting (orange cloud) and TTL is also cached and re-set based on the previous value, so if you made any modifications to these settings, you should restart the container so that the script is aware of the new settings.
 
-## Sending notifications using cloudflare-ddns
+## Sending notifications using Apprise
 
-You can send notifications when a DNS record gets updated with a new IP using [cloudflare-ddns](https://github.com/caronc/cloudflare-ddns/blob/master/README.md). Use the environment variable `cloudflare-ddns` to configure notifications, see below for some examples.
+You can send notifications when a DNS record gets updated with a new IP using [Apprise](https://github.com/caronc/apprise/blob/master/README.md). Use the environment variable `APPRISE` to configure notifications, see below for some examples.
 
 ```shell
--e cloudflare-ddns="pover://user@token"
--e cloudflare-ddns="pover://user@token;discord://webhook_id/webhook_token"
+-e APPRISE="pover://user@token"
+-e APPRISE="pover://user@token;discord://webhook_id/webhook_token"
 ```
