@@ -236,7 +236,8 @@ while true; do
                         fi
                     fi
                 elif [[ -n ${zone} ]]; then
-                    zoneid=${zone} && logger "Zone ID supplied by [CF_ZONES] is [${zoneid}]."
+                    zoneid=${zone}
+                    logger "Zone ID supplied by [CF_ZONES] is [${zoneid}]."
                 fi
 
                 ## Try getting the DNS record from Cloudflare ##
@@ -250,13 +251,17 @@ while true; do
                     elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
                         logger "Response:\n$(jq . <<< "${response}")" DEBUG
                         dnsrecord=$(jq -r '.result[0] | {name, id, zone_id, zone_name, content, type, proxied, ttl}' <<< "${response}")
-                        logger "Writing DNS record to cache file [${cache}]." INFO && printf "%s" "${dnsrecord}" > "${cache}" && logger "Data written to cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
+                        logger "Writing DNS record to cache file [${cache}]." INFO
+                        printf "%s" "${dnsrecord}" > "${cache}"
+                        logger "Data written to cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
                     else
                         logger "An unexpected error occured!" ERROR
                     fi
                 fi
             else
-                logger "Reading DNS record from cache file [${cache}]." INFO && dnsrecord=$(<"${cache}") && logger "Data read from cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
+                logger "Reading DNS record from cache file [${cache}]." INFO
+                dnsrecord=$(<"${cache}")
+                logger "Data read from cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
             fi
 
             ##################################################
@@ -278,7 +283,8 @@ while true; do
                     elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
                         logger "Response:\n$(jq . <<< "${response}")" DEBUG
                         logger "Updated IP [${ip}] to [${newip}]." UPDATE
-                        logger "Deleting cache file [${cache}]." && rm "${cache}"
+                        logger "Deleting cache file [${cache}]."
+                        rm "${cache}"
                         fjson "${host}" "${type}" "${newip}"
                         fapprise "${host}" "${type}" "${newip}"
                     else
