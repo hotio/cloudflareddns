@@ -70,8 +70,8 @@ jobs:
           push: true
           platforms: ${{ steps.prep.outputs.platform }}
           file: ./${{ matrix.architecture }}.Dockerfile
-          cache-from: ${{ steps.prep.outputs.cache }}
-          cache-to: ${{ steps.prep.outputs.cache }}
+          cache-from: ghcr.io/${{ steps.prep.outputs.cache }}
+          cache-to: ghcr.io/${{ steps.prep.outputs.cache }}
           tags: |
             ${{ steps.prep.outputs.tag }}
             ghcr.io/${{ steps.prep.outputs.tag }}
@@ -88,11 +88,11 @@ jobs:
       - name: Dive Analysis
         uses: yuichielectric/dive-action@0.0.4
         with:
-          image: "${{ steps.prep.outputs.tag }}"
+          image: "ghcr.io/${{ steps.prep.outputs.tag }}"
 
       - name: Run tests
         run: |
-          bash update.sh tests ${{ steps.prep.outputs.tag }}
+          bash update.sh tests ghcr.io/${{ steps.prep.outputs.tag }}
 
   publish:
     runs-on: ubuntu-20.04
@@ -152,7 +152,7 @@ jobs:
         if: "contains(needs.publish.result, 'success')"
         run: |
           if [[ -f puppeteer.js ]]; then
-            bash update.sh screenshot ${GITHUB_REPOSITORY//docker-/}:${GITHUB_REF//refs\/heads\//}-${GITHUB_SHA:0:7}
+            bash update.sh screenshot ghcr.io/${GITHUB_REPOSITORY//docker-/}:${GITHUB_REF//refs\/heads\//}-${GITHUB_SHA:0:7}
           fi
 
       - name: Send discord notification
