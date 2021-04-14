@@ -1,4 +1,4 @@
-FROM ghcr.io/hotio/base@sha256:ed5052300d2e5b6ce7e1cda9ae91707f5ad6562941023d440ce8f909368224fa
+FROM ghcr.io/hotio/base@sha256:292b23ea39878cae6c827a3b6a47d483972cbf8903d3a05d12c18cf0fe539ebb
 
 ENV INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflare" LOG_LEVEL=3
 
