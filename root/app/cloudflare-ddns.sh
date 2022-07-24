@@ -94,11 +94,40 @@ LOG_LEVEL="${LOG_LEVEL:-3}"
 # READ IN VALUES
 DEFAULTIFS="${IFS}"
 IFS=';'
-read -r -a cfhost      <<< "${CF_HOSTS}"
-read -r -a cfzone      <<< "${CF_ZONES}"
-read -r -a cftype      <<< "${CF_RECORDTYPES}"
-read -r -a apprise_uri <<< "${APPRISE}"
+read -r -a cfhost_old      <<< "${CF_HOSTS}"
+read -r -a cfzone_old      <<< "${CF_ZONES}"
+read -r -a cftype_old      <<< "${CF_RECORDTYPES}"
+read -r -a apprise_uri_old <<< "${APPRISE}"
 IFS="${DEFAULTIFS}"
+
+VALUE_SEPARATOR_RE=$'[[:space:]]*;[[:space:]]*'
+IFS=$'\n' read -r -d '' -a cfhost < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${CF_HOSTS}")
+
+for i in "${!cfhost_old[@]}"; do 
+  printf "%s\t%s\n" "$i" "'${cfhost_old[$i]}'"
+  printf "%s\t%s\n" "$i" "'${cfhost[$i]}'"
+done
+
+IFS=$'\n' read -r -d '' -a cfzone < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${CF_ZONES}")
+
+for i in "${!cfzone_old[@]}"; do 
+  printf "%s\t%s\n" "$i" "'${cfzone_old[$i]}'"
+  printf "%s\t%s\n" "$i" "'${cfzone[$i]}'"
+done
+
+IFS=$'\n' read -r -d '' -a cftype < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${CF_RECORDTYPES}")
+
+for i in "${!cftype_old[@]}"; do 
+  printf "%s\t%s\n" "$i" "'${cftype_old[$i]}'"
+  printf "%s\t%s\n" "$i" "'${cftype[$i]}'"
+done
+
+IFS=$'\n' read -r -d '' -a apprise_uri < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${APPRISE}")
+
+for i in "${!apprise_uri_old[@]}"; do 
+  printf "%s\t%s\n" "$i" "'${apprise_uri_old[$i]}'"
+  printf "%s\t%s\n" "$i" "'${apprise_uri[$i]}'"
+done
 
 # SETUP CACHE
 cache_location="${1:-/dev/shm}"
