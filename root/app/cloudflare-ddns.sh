@@ -93,10 +93,10 @@ LOG_LEVEL="${LOG_LEVEL:-3}"
 
 # READ IN VALUES
 VALUE_SEPARATOR_RE=$'[[:space:]]*;[[:space:]]*'
-IFS=$'\n' read -r -d '' -a cfhost < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${CF_HOSTS}")
-IFS=$'\n' read -r -d '' -a cfzone < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${CF_ZONES}")
-IFS=$'\n' read -r -d '' -a cftype < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${CF_RECORDTYPES}")
-IFS=$'\n' read -r -d '' -a apprise_uri < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${APPRISE}")
+IFS=$'\n' read -r -d '' -a cfhost      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_HOSTS}")
+IFS=$'\n' read -r -d '' -a cfzone      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_ZONES}")
+IFS=$'\n' read -r -d '' -a cftype      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_RECORDTYPES}")
+IFS=$'\n' read -r -d '' -a apprise_uri < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${APPRISE}")
 unset VALUE_SEPARATOR_RE
 
 # SETUP CACHE
