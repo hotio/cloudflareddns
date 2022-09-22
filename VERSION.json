@@ -1,4 +1,5 @@
 {
+  "latest": true,
   "apprise_version": "1.0.0",
   "upstream_image": "cr.hotio.dev/hotio/base",
   "upstream_tag": "alpine",
