@@ -3,6 +3,14 @@
 
 umask "${UMASK}"
 
+mask() {
+    local n=3
+    [[ ${#1} -le 5 ]] && n=$(( ${#1} - 3 ))
+    local a="${1:0:${#1}-n}"
+    local b="${1:${#1}-n}"
+    printf "%s%s\n" "${a//?/*}" "$b"
+}
+
 echo "
 ----------------------------------------------------------------------
 ENVIRONMENT
@@ -16,9 +24,9 @@ DETECTION_MODE=${DETECTION_MODE}
 LOG_LEVEL=${LOG_LEVEL}
 APPRISE=${APPRISE}
 CF_USER=${CF_USER}
-CF_APIKEY=${CF_APIKEY}
-CF_APITOKEN=${CF_APITOKEN}
-CF_APITOKEN_ZONE=${CF_APITOKEN_ZONE}
+CF_APIKEY=$(mask "${CF_APIKEY}")
+CF_APITOKEN=$(mask "${CF_APITOKEN}")
+CF_APITOKEN_ZONE=$(mask "${CF_APITOKEN_ZONE}")
 CF_HOSTS=${CF_HOSTS}
 CF_ZONES=${CF_ZONES}
 CF_RECORDTYPES=${CF_RECORDTYPES}
