@@ -13,6 +13,5 @@ RUN apk add --no-cache python3 py3-six py3-requests py3-pip py3-cryptography ncu
     apk del --purge py3-pip
 
 COPY root/ /
-RUN chmod -R +x /etc/cont-init.d/ /etc/services.d/
 
 RUN chmod 755 "${APP_DIR}/cloudflare-ddns.sh"
