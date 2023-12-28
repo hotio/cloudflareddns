@@ -1,6 +1,6 @@
 {
   "latest": true,
-  "apprise_version": "1.6.0",
+  "apprise_version": "1.7.0",
   "upstream_image": "ghcr.io/hotio/base",
   "upstream_tag": "alpine",
   "upstream_digest_amd64": "sha256:f1b248466c452da319278e86d8d69f53aea51243a067678a6d3796863cbb7a5e",
