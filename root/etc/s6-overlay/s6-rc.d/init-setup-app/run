@@ -13,12 +13,8 @@ mask() {
 
 echo "
 ----------------------------------------------------------------------
-ENVIRONMENT
+ENVIRONMENT APP
 ----------------------------------------------------------------------
-PUID=${PUID}
-PGID=${PGID}
-UMASK=${UMASK}
-TZ=${TZ}
 INTERVAL=${INTERVAL}
 DETECTION_MODE=${DETECTION_MODE}
 LOG_LEVEL=${LOG_LEVEL}
@@ -32,20 +28,3 @@ CF_ZONES=${CF_ZONES}
 CF_RECORDTYPES=${CF_RECORDTYPES}
 ----------------------------------------------------------------------
 "
-
-if [[ ! "${PUID}" -eq 0 ]] && [[ ! "${PGID}" -eq 0 ]]; then
-    echo "Executing usermod..."
-    mkdir "/tmp/temphome"
-    usermod -d "/tmp/temphome" hotio
-    usermod -o -u "${PUID}" hotio
-    usermod -d "${CONFIG_DIR}" hotio
-    rm -rf "/tmp/temphome"
-    groupmod -o -g "${PGID}" hotio
-else
-    echo "Running as root is not supported, please fix your PUID and PGID!"
-    exit 1
-fi
-
-echo "Applying permissions to ${CONFIG_DIR}"
-chmod "=rwx" "${CONFIG_DIR}"
-chown hotio:hotio "${CONFIG_DIR}"
