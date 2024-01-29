@@ -307,8 +307,12 @@ while true; do
     unset zone
     unset type
 
-    ## Go to sleep ##
-    logger "Going to sleep for [${INTERVAL}] seconds..."
-    sleep "${INTERVAL}"
-
+    ## Go to sleep or exit ##
+    if [[ "${INTERVAL}" == 0 ]]; then
+        logger "INTERVAL set to [${INTERVAL}] seconds. Exiting..."
+        exit 0
+    else
+        logger "Going to sleep for [${INTERVAL}] seconds..."
+        sleep "${INTERVAL}"
+    fi
 done
