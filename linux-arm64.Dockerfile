@@ -2,7 +2,8 @@ ARG UPSTREAM_IMAGE
 ARG UPSTREAM_DIGEST_ARM64
 
 FROM ${UPSTREAM_IMAGE}@${UPSTREAM_DIGEST_ARM64}
-ENV INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflare" LOG_LEVEL=3
+ARG IMAGE_STATS
+ENV IMAGE_STATS=${IMAGE_STATS} INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflare" LOG_LEVEL=3
 
 ARG APPRISE_VERSION
 RUN apk add --no-cache python3 py3-six py3-requests py3-pip py3-cryptography ncurses iproute2 bind-tools && \
