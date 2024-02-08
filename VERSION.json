@@ -1,5 +1,5 @@
 {
-  "apprise_version": "",
+  "apprise_version": "1.7.2",
   "latest": true,
   "upstream_digest_amd64": "sha256:580a4a96baf362f46f70046dfea5b66ac7ccea9508423aa813e8187ac5401af5",
   "upstream_digest_arm64": "sha256:a25e8024054bdd585740102323d6ad6eb3bbb559372ddaeea28ccac11cc767f4",
