@@ -4,3 +4,5 @@ json=$(cat VERSION.json)
 jq --sort-keys \
     --arg apprise_version "${apprise_version//v/}" \
     '.apprise_version = $apprise_version' <<< "${json}" | tee VERSION.json
+
+[[ -f update-self-version.sh ]] && bash ./update-self-version.sh
