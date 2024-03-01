@@ -2,13 +2,13 @@
   "release": {
     "description": "",
     "hide": false,
-    "last_updated": "2024-03-01T08:47:02.000Z",
-    "last_updated_url": "https://github.com/hotio/cloudflareddns/actions/runs/8108656528",
+    "last_updated": "2024-03-01T19:32:25.000Z",
+    "last_updated_url": "https://github.com/hotio/cloudflareddns/actions/runs/8116206434",
     "latest": true,
     "tags": [
       "release",
       "release-3b8eb79--1.7.2",
-      "release-ebdeb3c"
+      "release-f4ec25b"
     ]
   }
 }
