@@ -7,7 +7,7 @@ ENV IMAGE_STATS=${IMAGE_STATS} INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflar
 
 ARG APPRISE_VERSION
 RUN apk add --no-cache python3 py3-six py3-requests py3-pip py3-cryptography ncurses iproute2 bind-tools && \
-    pip3 install --no-cache-dir --upgrade apprise==${APPRISE_VERSION} && \
+    pip3 install --break-system-packages --no-cache-dir --upgrade apprise==${APPRISE_VERSION} && \
     apk del --purge py3-pip
 
 COPY root/ /
