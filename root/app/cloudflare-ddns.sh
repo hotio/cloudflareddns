@@ -253,7 +253,7 @@ while true; do
                         logger "No DNS record was returned!" ERROR
                     elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
                         logger "Response:\n$(jq . <<< "${response}")" DEBUG
-                        dnsrecord=$(jq -r --arg id "${zoneid}" --arg name "${host}" '.result[0] | {name, id, zone_id, zone_name, content, type, proxied, ttl} | .zone_id = $id | .zone_name = $name' <<< "${response}")
+                        dnsrecord=$(jq -r --arg id "${zoneid}" '.result[0] | {name, id, zone_id, content, type, proxied, ttl} | .zone_id = $id' <<< "${response}")
                         logger "Writing DNS record to cache file [${cache}]." INFO
                         printf "%s" "${dnsrecord}" > "${cache}"
                         logger "Data written to cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
