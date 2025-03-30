@@ -1,9 +1,9 @@
 {
-  "apprise_version": "1.9.2",
+  "apprise_version": "1.9.3",
   "latest": true,
   "upstream_digest_amd64": "sha256:9777ac6ddbcffb78b6ef1136e507f070d2129f9585069359d51f49b770dfee1e",
   "upstream_digest_arm64": "sha256:a3ca88b4effcc2ff8922dc9e3098b2c33d818247706d286038c5f8f16a25137a",
   "upstream_image": "ghcr.io/hotio/base",
   "upstream_tag": "alpinevpn",
-  "version": "d7aa545--1.9.2"
+  "version": "d7aa545--1.9.3"
 }
