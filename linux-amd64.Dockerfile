@@ -12,4 +12,5 @@ RUN apk add --no-cache python3 py3-six py3-requests py3-pip py3-cryptography ncu
 
 COPY root/ /
 
-RUN chmod 755 "${APP_DIR}/cloudflare-ddns.sh"
+RUN chmod 755 "${APP_DIR}/cloudflare-ddns.sh" && \
+    find /etc/s6-overlay/s6-rc.d -name "run*" -execdir chmod +x {} +
