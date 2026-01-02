@@ -150,6 +150,18 @@ while true; do
     [[ ${UPDATE_IPV4} == "true" ]] && logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]."
     [[ ${UPDATE_IPV6} == "true" ]] && logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]."
 
+    if [[ -z ${zonelist} ]]; then
+        logger "Requesting zone list from Cloudflare."
+        response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones" | jq -r '.result[] | {id, name}')
+        if [[ -n "${response}" ]]; then
+            zonelist=$(jq . <<< "${response}")
+            logger "Response:\n${zonelist}" DEBUG
+            logger "Retrieved zone list from Cloudflare."
+        else
+            logger "An unexpected error occured!" ERROR
+        fi
+    fi
+
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
         host=${cfhost[$index]//[[:space:]]/}
@@ -161,18 +173,6 @@ while true; do
         ##################################################
         if [[ ! -f ${cache} ]]; then
             ## Try getting the Zone ID ##
-            zoneid=""
-            if [[ -z ${zonelist} ]]; then
-                logger "Requesting zone list from Cloudflare."
-                response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones" | jq -r '.result[] | {id, name}')
-                if [[ -n "${response}" ]]; then
-                    zonelist=$(jq . <<< "${response}")
-                    logger "Response:\n${zonelist}" DEBUG
-                    logger "Retrieved zone list from Cloudflare."
-                else
-                    logger "An unexpected error occured!" ERROR
-                fi
-            fi
             if [[ -n ${zonelist} ]]; then
                 zoneid=$(jq -r 'select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
                 if [[ -n ${zoneid} ]]; then
@@ -251,6 +251,10 @@ while true; do
             done <<< "${dnsrecord}"
         fi
     done
+
+    ## Reset values
+    unset host
+    unset zone
 
     ## Go to sleep or exit ##
     if [[ "${INTERVAL}" == 0 ]]; then
