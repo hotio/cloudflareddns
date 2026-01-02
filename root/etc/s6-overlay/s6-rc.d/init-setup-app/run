@@ -19,9 +19,7 @@ APPRISE=${APPRISE}
 CF_USER=${CF_USER}
 CF_APIKEY=$(mask "${CF_APIKEY}")
 CF_APITOKEN=$(mask "${CF_APITOKEN}")
-CF_APITOKEN_ZONE=$(mask "${CF_APITOKEN_ZONE}")
 CF_HOSTS=${CF_HOSTS}
-CF_ZONES=${CF_ZONES}
 CF_RECORDTYPES=${CF_RECORDTYPES}
 ----------------------------------------------------------------------
 "

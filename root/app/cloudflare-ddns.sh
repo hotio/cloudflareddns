@@ -49,9 +49,7 @@ logger() {
 
 }
 fcurl() {
-    if [[ -n ${CF_APITOKEN_ZONE} ]] && [[ $* != *dns_records* ]]; then
-        curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN_ZONE}" "$@"
-    elif [[ -n ${CF_APITOKEN} ]]; then
+    if [[ -n ${CF_APITOKEN} ]]; then
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
     else
         curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
@@ -94,7 +92,6 @@ LOG_LEVEL="${LOG_LEVEL:-3}"
 # READ IN VALUES
 VALUE_SEPARATOR_RE=$'[[:space:]]*;[[:space:]]*'
 IFS=$'\n' read -r -d '' -a cfhost      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_HOSTS}")
-IFS=$'\n' read -r -d '' -a cfzone      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_ZONES}")
 IFS=$'\n' read -r -d '' -a cftype      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_RECORDTYPES}")
 IFS=$'\n' read -r -d '' -a apprise_uri < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${APPRISE}")
 unset VALUE_SEPARATOR_RE
@@ -195,15 +192,7 @@ while true; do
         if ! [[ ${newip} =~ ${regex} ]]; then
             logger "Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection or configuration." ERROR
         else
-
-            if [[ -n ${cfzone[$index]} ]]; then
-                zone=${cfzone[$index]}
-            elif [[ -z ${zone} ]]; then
-                logger "No value was found in [CF_ZONES] for host [${host}], also no previous value was found, can't do anything until you fix this!" ERROR
-                break
-            else
-                logger "No value was found in [CF_ZONES] for host [${host}], the previous value [${zone}] is used instead." WARNING
-            fi
+            zone=$(awk -F"." -v OFS="." '{print $(NF-1),$(NF)}' <<< "${host}")
 
             ##################################################
             ## Try getting the DNS records                  ##
@@ -211,39 +200,34 @@ while true; do
             if [[ ! -f ${cache} ]]; then
                 ## Try getting the Zone ID ##
                 zoneid=""
-                dnsrecord=""
-                if [[ ${zone} == *.* ]]; then
-                    if [[ -z ${zonelist} ]]; then
-                        logger "Reading zone list from Cloudflare."
-                        response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones")
-                        if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
-                            logger "Error response:\n$(jq . <<< "${response}")" ERROR
-                        elif [[ $(jq -r '.success' <<< "${response}") == true ]] && [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
-                            logger "No zone list was returned!" ERROR
-                        elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
-                            zonelist=$(jq . <<< "${response}")
-                            logger "Response:\n${zonelist}" DEBUG
-                            logger "Retrieved zone list from Cloudflare."
-                        else
-                            logger "An unexpected error occured!" ERROR
-                        fi
+                if [[ -z ${zonelist} ]]; then
+                    logger "Reading zone list from Cloudflare."
+                    response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones")
+                    if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
+                        logger "Error response:\n$(jq . <<< "${response}")" ERROR
+                    elif [[ $(jq -r '.success' <<< "${response}") == true ]] && [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
+                        logger "No zone list was returned!" ERROR
+                    elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
+                        zonelist=$(jq . <<< "${response}")
+                        logger "Response:\n${zonelist}" DEBUG
+                        logger "Retrieved zone list from Cloudflare."
                     else
-                        logger "Reading zone list from memory."
+                        logger "An unexpected error occured!" ERROR
                     fi
-                    if [[ -n ${zonelist} ]]; then
-                        zoneid=$(jq -r '.result[] | select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
-                        if [[ -n ${zoneid} ]]; then
-                            logger "Zone ID [${zoneid}] found for zone [${zone}]."
-                        else
-                            logger "Couldn't find the Zone ID for zone [${zone}]!" ERROR
-                        fi
+                else
+                    logger "Reading zone list from memory."
+                fi
+                if [[ -n ${zonelist} ]]; then
+                    zoneid=$(jq -r '.result[] | select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
+                    if [[ -n ${zoneid} ]]; then
+                        logger "Zone ID [${zoneid}] found for zone [${zone}]."
+                    else
+                        logger "Couldn't find the Zone ID for zone [${zone}]!" ERROR
                     fi
-                elif [[ -n ${zone} ]]; then
-                    zoneid=${zone}
-                    logger "Zone ID supplied by [CF_ZONES] is [${zoneid}]."
                 fi
 
                 ## Try getting the DNS record from Cloudflare ##
+                dnsrecord=""
                 if [[ -n ${zoneid} ]]; then
                     logger "Reading DNS record from Cloudflare."
                     response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=${type}&name=${host}")
