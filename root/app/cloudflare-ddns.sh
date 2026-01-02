@@ -11,11 +11,9 @@ logger() {
     LOG_MESSAGE=${1}
     if [[ -n ${host} ]]; then
         LOG_NUMBER="[$((index+1))/${#cfhost[@]}] "
-        LOG_ZONE="[${zone}] "
         LOG_HOST="[${host}] "
     else
         unset LOG_NUMBER
-        unset LOG_ZONE
         unset LOG_HOST
     fi
 
@@ -43,7 +41,7 @@ logger() {
             ;;
     esac
 
-    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%s%b%s\n" "${COLOR}" "${LOG_TYPE}" "${LOG_NUMBER}" "${LOG_ZONE}" "${LOG_HOST}" "${LOG_MESSAGE}" "${NC}"
+    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%b%s\n" "${COLOR}" "${LOG_TYPE}" "${LOG_NUMBER}" "${LOG_HOST}" "${LOG_MESSAGE}" "${NC}"
 
 }
 fcurl() {
@@ -56,6 +54,7 @@ fcurl() {
 fapprise() {
     if [[ -n ${APPRISE} ]]; then
         for index in ${!apprise_uri[*]}; do
+            apprise_uri=${apprise_uri[$index]//[[:space:]]/}
             logger "Sending notification with Apprise to [${apprise_uri[$index]}]."
             result=$(apprise -v -t "Cloudflare DDNS - [${1}]" -b "DNS record [${2}] [${1}] has been updated from [${4}] to [${3}]." "${apprise_uri[$index]}") || logger "Error response:\n${result}" ERROR
         done
@@ -88,10 +87,8 @@ DETECTION_MODE="${DETECTION_MODE:-dig-whoami.cloudflare}"
 LOG_LEVEL="${LOG_LEVEL:-3}"
 
 # READ IN VALUES
-VALUE_SEPARATOR_RE=$'[[:space:]]*;[[:space:]]*'
-IFS=$'\n' read -r -d '' -a cfhost      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_HOSTS}")
-IFS=$'\n' read -r -d '' -a apprise_uri < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${APPRISE}")
-unset VALUE_SEPARATOR_RE
+IFS=$'\n' read -r -d '' -a cfhost      < <(awk -F'[,;]' '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_HOSTS}")
+IFS=$'\n' read -r -d '' -a apprise_uri < <(awk -F'[,;]' '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${APPRISE}")
 
 # SETUP CACHE
 cache_location="${1:-/dev/shm}"
@@ -106,16 +103,16 @@ while true; do
     ## CHECK FOR NEW IP ##
     case "${DETECTION_MODE}" in
         dig-google.com)
-            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
-            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | sed -e 's/"//g' -e '/;.*/d')
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | sed -e 's/"//g' -e '/;.*/d')
             ;;
         dig-opendns.com)
-            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 A +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
-            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 A +short myip.opendns.com @resolver1.opendns.com 2>/dev/null | sed -e 's/"//g' -e '/;.*/d')
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com 2>/dev/null | sed -e 's/"//g' -e '/;.*/d')
             ;;
         dig-whoami.cloudflare)
-            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short whoami.cloudflare @1.1.1.1 ch 2>/dev/null | tr -d '"')
-            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short whoami.cloudflare @2606:4700:4700::1111 ch 2>/dev/null | tr -d '"')
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short whoami.cloudflare @1.1.1.1 ch 2>/dev/null | sed -e 's/"//g' -e '/;.*/d')
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short whoami.cloudflare @2606:4700:4700::1111 ch 2>/dev/null | sed -e 's/"//g' -e '/;.*/d')
             ;;
         curl-icanhazip.com)
             [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 icanhazip.com)
@@ -155,7 +152,7 @@ while true; do
 
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
-        host=${cfhost[$index]}
+        host=${cfhost[$index]//[[:space:]]/}
         cache="${cache_location}/cf-ddns-${host}.cache"
         zone=$(awk -F"." -v OFS="." '{print $(NF-1),$(NF)}' <<< "${host}")
 
@@ -166,7 +163,7 @@ while true; do
             ## Try getting the Zone ID ##
             zoneid=""
             if [[ -z ${zonelist} ]]; then
-                logger "Reading zone list from Cloudflare."
+                logger "Requesting zone list from Cloudflare."
                 response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones" | jq -r '.result[] | {id, name}')
                 if [[ -n "${response}" ]]; then
                     zonelist=$(jq . <<< "${response}")
@@ -177,7 +174,6 @@ while true; do
                 fi
             fi
             if [[ -n ${zonelist} ]]; then
-                logger "Reading zone list from memory."
                 zoneid=$(jq -r 'select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
                 if [[ -n ${zoneid} ]]; then
                     logger "Zone ID [${zoneid}] found for zone [${zone}]."
@@ -189,7 +185,7 @@ while true; do
             ## Try getting the DNS record from Cloudflare ##
             dnsrecord=""
             if [[ -n ${zoneid} ]]; then
-                logger "Reading DNS records from Cloudflare."
+                logger "Requesting DNS records from Cloudflare."
                 dnsrecord=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?name=${host}" | jq -rc '.result[]|select(.type=="A" or .type=="AAAA")| {id, name, type, content, proxied, ttl}')
                 if [[ -n "${dnsrecord}" ]]; then
                     logger "Response:\n$(jq . <<< "${dnsrecord}")" DEBUG
@@ -209,7 +205,6 @@ while true; do
         ## If DNS records were retrieved, do the update ##
         ##################################################
         if [[ -n ${dnsrecord} ]]; then
-            logger "Reading DNS records..."
             while IFS=$'\n' read -r record; do
                 id=$(jq -r '.id'      <<< "${record}")
                 proxied=$(jq -r '.proxied' <<< "${record}")
@@ -224,13 +219,13 @@ while true; do
                         newip="${newipv4}"
                         ;;
                     AAAA)
-                        [[ ${UPDATE_IPV4} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
+                        [[ ${UPDATE_IPV6} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
                         regex="${regexv6}"
                         newip="${newipv6}"
                         ;;
                 esac
                 if ! [[ ${newip} =~ ${regex} ]]; then
-                    logger "Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection or configuration." ERROR
+                    logger "[${id}][${type}] Returned IP [${newip}] is not valid!" ERROR
                     continue
                 fi
 
