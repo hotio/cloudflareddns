@@ -150,12 +150,24 @@ while true; do
             ;;
     esac
     if [[ ${UPDATE_IPV4} == "true" ]]; then
-        [[ ${newipv4} =~ ${regexv4} ]] && logger "Detected IPv4 is [${newipv4}]." && UPDATE_A="true"
-        [[ ! ${newipv4} =~ ${regexv4} ]] && logger "Detected IPv4 is not valid!" ERROR && UPDATE_A="false"
+        if [[ ${newipv4} =~ ${regexv4} ]]; then
+            logger "Detected IPv4 is [${newipv4}]."
+            UPDATE_A="true"
+        fi
+        if [[ ! ${newipv4} =~ ${regexv4} ]]; then
+            logger "Detected IPv4 is not valid!" ERROR
+            UPDATE_A="false"
+        fi
     fi
     if [[ ${UPDATE_IPV6} == "true" ]]; then
-        [[ ${newipv6} =~ ${regexv6} ]] && logger "Detected IPv6 is [${newipv6}]." && UPDATE_AAAA="true"
-        [[ ! ${newipv6} =~ ${regexv6} ]] && logger "Detected IPv6 is not valid!" ERROR && UPDATE_AAAA="false"
+        if [[ ${newipv6} =~ ${regexv6} ]]; then
+            logger "Detected IPv6 is [${newipv6}]."
+            UPDATE_AAAA="true"
+        fi
+        if [[ ! ${newipv6} =~ ${regexv6} ]]; then
+            logger "Detected IPv6 is not valid!" ERROR
+            UPDATE_AAAA="false"
+        fi
     fi
 
     if [[ -z ${zonelist} ]]; then
@@ -222,13 +234,25 @@ while true; do
 
                 case "${type}" in
                     A)
-                        [[ ${UPDATE_IPV4} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
-                        [[ ${UPDATE_A} != "true" ]] && logger "[${id}][${type}] Update is skipped." WARNING && continue
+                        if [[ ${UPDATE_IPV4} != "true" ]]; then
+                            logger "[${id}][${type}] Update is not wanted."
+                            continue
+                        fi
+                        if [[ ${UPDATE_A} != "true" ]]; then
+                            logger "[${id}][${type}] Update is skipped." WARNING
+                            continue
+                        fi
                         newip="${newipv4}"
                         ;;
                     AAAA)
-                        [[ ${UPDATE_IPV6} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
-                        [[ ${UPDATE_AAAA} != "true" ]] && logger "[${id}][${type}] Update is skipped." WARNING && continue
+                        if [[ ${UPDATE_IPV6} != "true" ]]; then
+                            logger "[${id}][${type}] Update is not wanted."
+                            continue
+                        fi
+                        if [[ ${UPDATE_AAAA} != "true" ]]; then
+                            logger "[${id}][${type}] Update is skipped." WARNING
+                            continue
+                        fi
                         newip="${newipv6}"
                         ;;
                 esac
