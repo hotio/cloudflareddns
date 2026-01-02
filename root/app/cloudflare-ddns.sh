@@ -11,12 +11,10 @@ logger() {
     LOG_MESSAGE=${1}
     if [[ -n ${host} ]]; then
         LOG_NUMBER="[$((index+1))/${#cfhost[@]}] "
-        LOG_RECORDTYPE="[${type}] "
         LOG_ZONE="[${zone}] "
         LOG_HOST="[${host}] "
     else
         unset LOG_NUMBER
-        unset LOG_RECORDTYPE
         unset LOG_ZONE
         unset LOG_HOST
     fi
@@ -45,7 +43,7 @@ logger() {
             ;;
     esac
 
-    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%s%s%b%s\n" "${COLOR}" "${LOG_TYPE}" "${LOG_NUMBER}" "${LOG_RECORDTYPE}" "${LOG_ZONE}" "${LOG_HOST}" "${LOG_MESSAGE}" "${NC}"
+    [[ ${LOG_LEVEL} -gt ${LEVEL} ]] && printf "$(date +'%Y-%m-%d %H:%M:%S') - %s%7s - %s%s%s%b%s\n" "${COLOR}" "${LOG_TYPE}" "${LOG_NUMBER}" "${LOG_ZONE}" "${LOG_HOST}" "${LOG_MESSAGE}" "${NC}"
 
 }
 fcurl() {
@@ -92,19 +90,12 @@ LOG_LEVEL="${LOG_LEVEL:-3}"
 # READ IN VALUES
 VALUE_SEPARATOR_RE=$'[[:space:]]*;[[:space:]]*'
 IFS=$'\n' read -r -d '' -a cfhost      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_HOSTS}")
-IFS=$'\n' read -r -d '' -a cftype      < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${CF_RECORDTYPES}")
 IFS=$'\n' read -r -d '' -a apprise_uri < <(awk -F${VALUE_SEPARATOR_RE} '{ for( i=1; i<=NF; i++ ) print $i }' <<< "${APPRISE}")
 unset VALUE_SEPARATOR_RE
 
 # SETUP CACHE
 cache_location="${1:-/dev/shm}"
 rm -f "${cache_location}"/*.cache
-
-# CHECK WHAT IP CHECK WE NEED TO ENABLE
-for index in ${!cftype[*]}; do
-    [[ ${cftype[$index]} == "A" ]]    && CHECK_IPV4="true"
-    [[ ${cftype[$index]} == "AAAA" ]] && CHECK_IPV6="true"
-done
 
 #################
 ## UPDATE LOOP ##
@@ -115,155 +106,137 @@ while true; do
     ## CHECK FOR NEW IP ##
     case "${DETECTION_MODE}" in
         dig-google.com)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
             ;;
         dig-opendns.com)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 A +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 A +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 AAAA +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
             ;;
         dig-whoami.cloudflare)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short whoami.cloudflare @1.1.1.1 ch 2>/dev/null | tr -d '"')
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short whoami.cloudflare @2606:4700:4700::1111 ch 2>/dev/null | tr -d '"')
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(dig -4 TXT +short whoami.cloudflare @1.1.1.1 ch 2>/dev/null | tr -d '"')
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(dig -6 TXT +short whoami.cloudflare @2606:4700:4700::1111 ch 2>/dev/null | tr -d '"')
             ;;
         curl-icanhazip.com)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 icanhazip.com)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 icanhazip.com)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 icanhazip.com)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 icanhazip.com)
             ;;
         curl-wtfismyip.com)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 wtfismyip.com/text)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 wtfismyip.com/text)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 wtfismyip.com/text)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 wtfismyip.com/text)
             ;;
         curl-showmyip.ca)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 showmyip.ca/ip.php)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 showmyip.ca/ip.php)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 showmyip.ca/ip.php)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 showmyip.ca/ip.php)
             ;;
         curl-da.gd)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 da.gd/ip)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 da.gd/ip)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 da.gd/ip)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 da.gd/ip)
             ;;
         curl-seeip.org)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 ip.seeip.org)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ip.seeip.org)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 ip.seeip.org)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ip.seeip.org)
             ;;
         curl-ifconfig.co)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 ifconfig.co)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 ifconfig.co)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 ifconfig.co)
             ;;
         curl-ipw.cn)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 4.ipw.cn)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 6.ipw.cn)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(curl -fsL -4 4.ipw.cn)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(curl -fsL -6 6.ipw.cn)
             ;;
         local:*)
-            [[ ${CHECK_IPV4} == "true" ]] && newipv4=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}' | head -1)
-            [[ ${CHECK_IPV6} == "true" ]] && newipv6=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet6" && $6 == "noprefixroute" {gsub(/\/.*$/, "", $2); print $2 }' | head -1)
+            [[ ${UPDATE_IPV4} == "true" ]] && newipv4=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}' | head -1)
+            [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet6" && $6 == "noprefixroute" {gsub(/\/.*$/, "", $2); print $2 }' | head -1)
             ;;
     esac
-    [[ ${CHECK_IPV4} == "true" ]] && logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]."
-    [[ ${CHECK_IPV6} == "true" ]] && logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]."
+    [[ ${UPDATE_IPV4} == "true" ]] && logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]."
+    [[ ${UPDATE_IPV6} == "true" ]] && logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]."
 
     ## UPDATE DOMAINS ##
     for index in ${!cfhost[*]}; do
-
         host=${cfhost[$index]}
+        cache="${cache_location}/cf-ddns-${host}.cache"
+        zone=$(awk -F"." -v OFS="." '{print $(NF-1),$(NF)}' <<< "${host}")
 
-        if [[ -n ${cftype[$index]} ]]; then
-            type=${cftype[$index]}
-        elif [[ -z ${type} ]]; then
-            logger "No value was found in [CF_RECORDTYPES] for host [${host}], also no previous value was found, can't do anything until you fix this!" ERROR
-            break
-        else
-            logger "No value was found in [CF_RECORDTYPES] for host [${host}], the previous value [${type}] is used instead." WARNING
-        fi
-
-        cache="${cache_location}/cf-ddns-${type}-${host}.cache"
-
-        case "${type}" in
-            A)
-                regex="${regexv4}"
-                newip="${newipv4}"
-                ;;
-            AAAA)
-                regex="${regexv6}"
-                newip="${newipv6}"
-                ;;
-        esac
-
-        if ! [[ ${newip} =~ ${regex} ]]; then
-            logger "Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection or configuration." ERROR
-        else
-            zone=$(awk -F"." -v OFS="." '{print $(NF-1),$(NF)}' <<< "${host}")
-
-            ##################################################
-            ## Try getting the DNS records                  ##
-            ##################################################
-            if [[ ! -f ${cache} ]]; then
-                ## Try getting the Zone ID ##
-                zoneid=""
-                if [[ -z ${zonelist} ]]; then
-                    logger "Reading zone list from Cloudflare."
-                    response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones")
-                    if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
-                        logger "Error response:\n$(jq . <<< "${response}")" ERROR
-                    elif [[ $(jq -r '.success' <<< "${response}") == true ]] && [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
-                        logger "No zone list was returned!" ERROR
-                    elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
-                        zonelist=$(jq . <<< "${response}")
-                        logger "Response:\n${zonelist}" DEBUG
-                        logger "Retrieved zone list from Cloudflare."
-                    else
-                        logger "An unexpected error occured!" ERROR
-                    fi
+        ##################################################
+        ## Try getting the DNS records                  ##
+        ##################################################
+        if [[ ! -f ${cache} ]]; then
+            ## Try getting the Zone ID ##
+            zoneid=""
+            if [[ -z ${zonelist} ]]; then
+                logger "Reading zone list from Cloudflare."
+                response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones" | jq -r '.result[] | {id, name}')
+                if [[ -n "${response}" ]]; then
+                    zonelist=$(jq . <<< "${response}")
+                    logger "Response:\n${zonelist}" DEBUG
+                    logger "Retrieved zone list from Cloudflare."
                 else
-                    logger "Reading zone list from memory."
+                    logger "An unexpected error occured!" ERROR
                 fi
-                if [[ -n ${zonelist} ]]; then
-                    zoneid=$(jq -r '.result[] | select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
-                    if [[ -n ${zoneid} ]]; then
-                        logger "Zone ID [${zoneid}] found for zone [${zone}]."
-                    else
-                        logger "Couldn't find the Zone ID for zone [${zone}]!" ERROR
-                    fi
-                fi
-
-                ## Try getting the DNS record from Cloudflare ##
-                dnsrecord=""
+            fi
+            if [[ -n ${zonelist} ]]; then
+                logger "Reading zone list from memory."
+                zoneid=$(jq -r 'select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
                 if [[ -n ${zoneid} ]]; then
-                    logger "Reading DNS record from Cloudflare."
-                    response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?type=${type}&name=${host}")
-                    if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
-                        logger "Error response:\n$(jq . <<< "${response}")" ERROR
-                    elif [[ $(jq -r '.success' <<< "${response}") == true ]] && [[ $(jq -r '.result_info.total_count' <<< "${response}") == 0 ]]; then
-                        logger "No DNS record was returned!" ERROR
-                    elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
-                        logger "Response:\n$(jq . <<< "${response}")" DEBUG
-                        dnsrecord=$(jq -r --arg id "${zoneid}" '.result[0] | {name, id, zone_id, content, type, proxied, ttl} | .zone_id = $id' <<< "${response}")
-                        logger "Writing DNS record to cache file [${cache}]." INFO
-                        printf "%s" "${dnsrecord}" > "${cache}"
-                        logger "Data written to cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
-                    else
-                        logger "An unexpected error occured!" ERROR
-                    fi
+                    logger "Zone ID [${zoneid}] found for zone [${zone}]."
+                else
+                    logger "Couldn't find the Zone ID for zone [${zone}]!" ERROR
                 fi
-            else
-                logger "Reading DNS record from cache file [${cache}]." INFO
-                dnsrecord=$(<"${cache}")
-                logger "Data read from cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
             fi
 
-            ##################################################
-            ## If DNS records were retrieved, do the update ##
-            ##################################################
-            if [[ -n ${dnsrecord} ]]; then
-                 zoneid=$(jq -r '.zone_id' <<< "${dnsrecord}")
-                     id=$(jq -r '.id'      <<< "${dnsrecord}")
-                proxied=$(jq -r '.proxied' <<< "${dnsrecord}")
-                    ttl=$(jq -r '.ttl'     <<< "${dnsrecord}")
-                     ip=$(jq -r '.content' <<< "${dnsrecord}")
+            ## Try getting the DNS record from Cloudflare ##
+            dnsrecord=""
+            if [[ -n ${zoneid} ]]; then
+                logger "Reading DNS records from Cloudflare."
+                dnsrecord=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?name=${host}" | jq -rc '.result[]|select(.type=="A" or .type=="AAAA")| {id, name, type, content, proxied, ttl}')
+                if [[ -n "${dnsrecord}" ]]; then
+                    logger "Response:\n$(jq . <<< "${dnsrecord}")" DEBUG
+                    logger "Writing DNS records to cache file [${cache}]." INFO
+                    printf "%s" "${dnsrecord}" > "${cache}"
+                else
+                    logger "An unexpected error occured!" ERROR
+                fi
+            fi
+        else
+            logger "Reading DNS records from cache file [${cache}]." INFO
+            dnsrecord=$(<"${cache}")
+            logger "Data read from cache:\n$(jq . <<< "${dnsrecord}")" DEBUG
+        fi
 
-                logger "Checking if update is needed."
+        ##################################################
+        ## If DNS records were retrieved, do the update ##
+        ##################################################
+        if [[ -n ${dnsrecord} ]]; then
+            logger "Reading DNS records..."
+            while IFS=$'\n' read -r record; do
+                id=$(jq -r '.id'      <<< "${record}")
+                proxied=$(jq -r '.proxied' <<< "${record}")
+                ttl=$(jq -r '.ttl'     <<< "${record}")
+                ip=$(jq -r '.content' <<< "${record}")
+                type=$(jq -r '.type' <<< "${record}")
+
+                case "${type}" in
+                    A)
+                        [[ ${UPDATE_IPV4} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
+                        regex="${regexv4}"
+                        newip="${newipv4}"
+                        ;;
+                    AAAA)
+                        [[ ${UPDATE_IPV4} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
+                        regex="${regexv6}"
+                        newip="${newipv6}"
+                        ;;
+                esac
+                if ! [[ ${newip} =~ ${regex} ]]; then
+                    logger "Returned IP [${newip}] by [${DETECTION_MODE}] is not valid for an [${type}] record! Check your connection or configuration." ERROR
+                    continue
+                fi
+
+                logger "[${id}][${type}] Checking if update is needed."
                 if [[ ${ip} != "${newip}" ]]; then
-                    logger "Updating DNS record."
+                    logger "[${id}][${type}] Updating DNS record."
                     response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
                     if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                         logger "Error response:\n$(jq . <<< "${response}")" ERROR
@@ -278,18 +251,11 @@ while true; do
                         logger "An unexpected error occured!" ERROR
                     fi
                 else
-                    logger "No update needed."
+                    logger "[${id}][${type}] No update needed."
                 fi
-            fi
-
+            done <<< "${dnsrecord}"
         fi
-
     done
-
-    ## Reset values
-    unset host
-    unset zone
-    unset type
 
     ## Go to sleep or exit ##
     if [[ "${INTERVAL}" == 0 ]]; then
