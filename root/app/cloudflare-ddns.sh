@@ -100,6 +100,8 @@ rm -f "${cache_location}"/*.cache
 
 while true; do
 
+    logger "Starting..."
+
     ## CHECK FOR NEW IP ##
     case "${DETECTION_MODE}" in
         dig-google.com)
@@ -147,8 +149,14 @@ while true; do
             [[ ${UPDATE_IPV6} == "true" ]] && newipv6=$(ip addr show "${DETECTION_MODE/local:/}" 2>/dev/null | awk '$1 == "inet6" && $6 == "noprefixroute" {gsub(/\/.*$/, "", $2); print $2 }' | head -1)
             ;;
     esac
-    [[ ${UPDATE_IPV4} == "true" ]] && logger "IPv4 detected by [${DETECTION_MODE}] is [${newipv4}]."
-    [[ ${UPDATE_IPV6} == "true" ]] && logger "IPv6 detected by [${DETECTION_MODE}] is [${newipv6}]."
+    if [[ ${UPDATE_IPV4} == "true" ]]; then
+        [[ ${newipv4} =~ ${regexv4} ]] && logger "Detected IPv4 is [${newipv4}]." && UPDATE_A="true"
+        [[ ! ${newipv4} =~ ${regexv4} ]] && logger "Detected IPv4 is not valid!" ERROR && UPDATE_A="false"
+    fi
+    if [[ ${UPDATE_IPV6} == "true" ]]; then
+        [[ ${newipv6} =~ ${regexv6} ]] && logger "Detected IPv6 is [${newipv6}]." && UPDATE_AAAA="true"
+        [[ ! ${newipv6} =~ ${regexv6} ]] && logger "Detected IPv6 is not valid!" ERROR && UPDATE_AAAA="false"
+    fi
 
     if [[ -z ${zonelist} ]]; then
         logger "Requesting zone list from Cloudflare."
@@ -215,19 +223,15 @@ while true; do
                 case "${type}" in
                     A)
                         [[ ${UPDATE_IPV4} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
-                        regex="${regexv4}"
+                        [[ ${UPDATE_A} != "true" ]] && logger "[${id}][${type}] Update is skipped." WARNING && continue
                         newip="${newipv4}"
                         ;;
                     AAAA)
                         [[ ${UPDATE_IPV6} != "true" ]] && logger "[${id}][${type}] Update is not wanted." && continue
-                        regex="${regexv6}"
+                        [[ ${UPDATE_AAAA} != "true" ]] && logger "[${id}][${type}] Update is skipped." WARNING && continue
                         newip="${newipv6}"
                         ;;
                 esac
-                if ! [[ ${newip} =~ ${regex} ]]; then
-                    logger "[${id}][${type}] Returned IP [${newip}] is not valid!" ERROR
-                    continue
-                fi
 
                 logger "[${id}][${type}] Checking if update is needed."
                 if [[ ${ip} != "${newip}" ]]; then
