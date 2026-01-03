@@ -77,12 +77,12 @@ initTld() {
 }
 domainExtract() { 
     local dom tld=$1
+    [[ ${#TLD[@]} -eq 0 ]] && initTld
     while [[ ! -v TLD[${tld}] ]] && [[ -n $tld ]]; do
         IFS=. read -r dom tld <<< "$tld"
     done
     echo "$dom.$tld"
 }
-initTld
 
 #############
 ## STARTUP ##
