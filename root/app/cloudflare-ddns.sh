@@ -65,6 +65,24 @@ fjson() {
     logger "Writing domain update to [${updates_json}]."
     printf '{"domain":"%s","recordtype":"%s","ip":"%s","timestamp":"%s"}\n' "${1}" "${2}" "${3}" "$(date --utc +%FT%TZ)" >> "${updates_json}"
 }
+declare -A TLD='()'
+initTld() { 
+    local tld
+    while read -r tld; do
+        [[ -n ${tld//*[ \/;*]*} ]] && TLD["${tld#\!}"]=''
+    done < <(
+      wget -qO - https://publicsuffix.org/list/public_suffix_list.dat
+    )
+    unset -f "${FUNCNAME[0]}"
+}
+domainExtract() { 
+    local dom tld=$1
+    while [[ ! -v TLD[${tld}] ]] && [[ -n $tld ]]; do
+        IFS=. read -r dom tld <<< "$tld"
+    done
+    echo "$dom.$tld"
+}
+initTld
 
 #############
 ## STARTUP ##
@@ -186,7 +204,7 @@ while true; do
     for index in ${!cfhost[*]}; do
         host=${cfhost[$index]//[[:space:]]/}
         cache="${cache_location}/cf-ddns-${host}.cache"
-        zone=$(awk -F"." -v OFS="." '{print $(NF-1),$(NF)}' <<< "${host}")
+        zone=$(domainExtract "${host}")
 
         ##################################################
         ## Try getting the DNS records                  ##
