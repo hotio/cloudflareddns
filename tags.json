@@ -1,15 +1,16 @@
 {
   "release": {
     "commit_message": "Upstream image update",
+    "commit_sha": "70a394cd8352a8b52178a6b3bee2fac6f2c8e5f3",
     "description": "",
     "hide": false,
-    "last_updated": "2026-01-04T09:25:32.000Z",
-    "last_updated_url": "https://github.com/hotio/cloudflareddns/actions/runs/20690821070",
+    "last_updated": "2026-01-07T03:57:13.000Z",
+    "last_updated_url": "https://github.com/hotio/cloudflareddns/actions/runs/20770097111",
     "latest": true,
     "tags": [
       "release",
       "release-4852606--1.9.6",
-      "release-5141426",
+      "release-70a394c",
       "",
       "",
       ""
