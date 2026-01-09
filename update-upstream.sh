@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -exuo pipefail
 
 json=$(cat VERSION.json)
 upstream_image=$(jq -re '.upstream_image' <<< "${json}")

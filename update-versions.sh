@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -exuo pipefail
 
 apprise_version=$(curl -fsSL "https://api.github.com/repos/caronc/apprise/releases/latest" | jq -re .tag_name)
 json=$(cat VERSION.json)
