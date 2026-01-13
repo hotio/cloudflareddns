@@ -5,9 +5,9 @@ FROM ${UPSTREAM_IMAGE}:${UPSTREAM_TAG_SHA}
 ARG IMAGE_STATS
 ENV IMAGE_STATS=${IMAGE_STATS} INTERVAL=300 DETECTION_MODE="dig-whoami.cloudflare" LOG_LEVEL=3 UPDATE_IPV4="true" UPDATE_IPV6="true" APPRISE="" CF_USER="" CF_APIKEY="" CF_APITOKEN="" CF_HOSTS=""
 
-ARG APPRISE_VERSION
+ARG VERSION_APPRISE
 RUN apk add --no-cache python3 py3-six py3-requests py3-pip py3-cryptography ncurses bind-tools && \
-    pip3 install --break-system-packages --no-cache-dir --upgrade apprise==${APPRISE_VERSION} && \
+    pip3 install --break-system-packages --no-cache-dir --upgrade apprise==${VERSION_APPRISE} && \
     apk del --purge py3-pip
 
 COPY root/ /
