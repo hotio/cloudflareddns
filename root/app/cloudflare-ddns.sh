@@ -206,20 +206,20 @@ while true; do
         cache="${cache_location}/cf-ddns-${host}.cache"
         zone=$(domainExtract "${host}")
 
+        ## Try getting the Zone ID ##
+        if [[ -n ${zonelist} ]]; then
+            zoneid=$(jq -r 'select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
+            if [[ -n ${zoneid} ]]; then
+                logger "Zone ID [${zoneid}] found for zone [${zone}]."
+            else
+                logger "Couldn't find the Zone ID for zone [${zone}]!" ERROR
+            fi
+        fi
+
         ##################################################
         ## Try getting the DNS records                  ##
         ##################################################
         if [[ ! -f ${cache} ]]; then
-            ## Try getting the Zone ID ##
-            if [[ -n ${zonelist} ]]; then
-                zoneid=$(jq -r 'select (.name == "'"${zone}"'") | .id' <<< "${zonelist}")
-                if [[ -n ${zoneid} ]]; then
-                    logger "Zone ID [${zoneid}] found for zone [${zone}]."
-                else
-                    logger "Couldn't find the Zone ID for zone [${zone}]!" ERROR
-                fi
-            fi
-
             ## Try getting the DNS record from Cloudflare ##
             dnsrecord=""
             if [[ -n ${zoneid} ]]; then
@@ -278,7 +278,7 @@ while true; do
                 logger "[${id}][${type}] Checking if update is needed."
                 if [[ ${ip} != "${newip}" ]]; then
                     logger "[${id}][${type}] Updating DNS record."
-                    response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"id":"'"${id}"'","type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
+                    response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
                     if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                         logger "Error response:\n$(jq . <<< "${response}")" ERROR
                     elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
