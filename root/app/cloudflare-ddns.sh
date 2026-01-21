@@ -46,9 +46,9 @@ logger() {
 }
 fcurl() {
     if [[ -n ${CF_APITOKEN} ]]; then
-        curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
+        curl -fsL -H "User-Agent: hotio/cloudflareddns" -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer ${CF_APITOKEN}" "$@"
     else
-        curl -s -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
+        curl -fsL -H "User-Agent: hotio/cloudflareddns" -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Auth-Email: ${CF_USER}" -H "X-Auth-Key: ${CF_APIKEY}" "$@"
     fi
 }
 fapprise() {
@@ -190,7 +190,7 @@ while true; do
 
     if [[ -z ${zonelist} ]]; then
         logger "Requesting zone list from Cloudflare."
-        response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones" | jq -r '.result[] | {id, name}')
+        response=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones" | jq -r '.result[] | {id, name}' 2> /dev/null)
         if [[ -n "${response}" ]]; then
             zonelist=$(jq . <<< "${response}")
             logger "Response:\n${zonelist}" DEBUG
@@ -224,7 +224,7 @@ while true; do
             dnsrecord=""
             if [[ -n ${zoneid} ]]; then
                 logger "Requesting DNS records from Cloudflare."
-                dnsrecord=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?name=${host}" | jq -rc '.result[]|select(.type=="A" or .type=="AAAA")| {id, name, type, content, proxied, ttl}')
+                dnsrecord=$(fcurl -X GET "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records?name=${host}" | jq -rc '.result[]|select(.type=="A" or .type=="AAAA")| {id, name, type, content}' 2> /dev/null)
                 if [[ -n "${dnsrecord}" ]]; then
                     logger "Response:\n$(jq . <<< "${dnsrecord}")" DEBUG
                     logger "Writing DNS records to cache file [${cache}]." INFO
@@ -244,9 +244,7 @@ while true; do
         ##################################################
         if [[ -n ${dnsrecord} ]]; then
             while IFS=$'\n' read -r record; do
-                id=$(jq -r '.id'      <<< "${record}")
-                proxied=$(jq -r '.proxied' <<< "${record}")
-                ttl=$(jq -r '.ttl'     <<< "${record}")
+                id=$(jq -r '.id' <<< "${record}")
                 ip=$(jq -r '.content' <<< "${record}")
                 type=$(jq -r '.type' <<< "${record}")
 
@@ -278,7 +276,7 @@ while true; do
                 logger "[${id}][${type}] Checking if update is needed."
                 if [[ ${ip} != "${newip}" ]]; then
                     logger "[${id}][${type}] Updating DNS record."
-                    response=$(fcurl -X PUT "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"type":"'"${type}"'","name":"'"${host}"'","content":"'"${newip}"'","ttl":'"${ttl}"',"proxied":'"${proxied}"'}')
+                    response=$(fcurl -X PATCH "https://api.cloudflare.com/client/v4/zones/${zoneid}/dns_records/${id}" --data '{"content":"'"${newip}"'"}')
                     if [[ $(jq -r '.success' <<< "${response}") == false ]]; then
                         logger "Error response:\n$(jq . <<< "${response}")" ERROR
                     elif [[ $(jq -r '.success' <<< "${response}") == true ]]; then
