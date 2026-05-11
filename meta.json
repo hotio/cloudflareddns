@@ -1,6 +1,6 @@
 {
   "latest": true,
-  "packages_hash": "",
+  "packages_hash": "386935f3ffba5e85180c24632334cac87a062219",
   "upstream_image": "ghcr.io/hotio/base",
   "upstream_tag": "alpinevpn",
   "upstream_tag_sha": "alpinevpn-41d94e3",
