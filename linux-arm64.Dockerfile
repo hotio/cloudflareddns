@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# check=skip=InvalidDefaultArgInFrom
+# check=skip=InvalidDefaultArgInFrom,SecretsUsedInArgOrEnv
 ARG UPSTREAM_IMAGE
 ARG UPSTREAM_TAG_SHA
 
