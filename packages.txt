@@ -1,5 +1,5 @@
-bind-libs=9.20.23-r0
-bind-tools=9.20.23-r0
+bind-libs=9.20.26-r0
+bind-tools=9.20.26-r0
 fstrm=0.6.1-r4
 json-c=0.18-r1
 keyutils-libs=1.6.3-r4
